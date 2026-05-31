@@ -21,6 +21,23 @@ import {
  */
 interface IPAUAdministeredAgentFactory {
 
+    /**********************************************************************************************/
+    /*** Custom Errors                                                                          ***/
+    /**********************************************************************************************/
+
+    /// @notice Thrown when the supplied PAU factory is the zero address.
+    error ZeroPAUFactory();
+
+    /// @notice Thrown when the supplied AdministeredAgent factory is the zero address.
+    error ZeroAdministeredAgentFactory();
+
+    /// @notice Thrown when the primary `admin` passed to {deploy} is the zero address.
+    error ZeroAdmin();
+
+    /**********************************************************************************************/
+    /*** Structs                                                                                ***/
+    /**********************************************************************************************/
+
     /**
      * @notice Admin addresses to be granted the default admin role on each
      *         component of the deployed stack, in addition to the primary `admin`.
@@ -34,6 +51,35 @@ interface IPAUAdministeredAgentFactory {
         address[] proxyAdmins;
         address[] rateLimitsAdmins;
         address[] administeredAgentAdmins;
+    }
+
+    /**
+     * @notice A single role -> role-admin assignment applied to the deployed AccessControls
+     *         contract via `setRoleAdmin`.
+     * @param  role      The role whose admin is being (re)assigned.
+     * @param  adminRole The role that will administer `role`.
+     */
+    struct AccessControlRoleAdminConfig {
+        bytes32 role;
+        bytes32 adminRole;
+    }
+
+    /**
+     * @notice Bundle of the contracts produced by a deploy, passed between the factory's internal
+     *         steps as a single memory reference (largely to keep the deploy flow under the EVM
+     *         stack limit).
+     * @param  accessControls The deployed AccessControls contract.
+     * @param  controller     The deployed Controller contract.
+     * @param  proxy          The deployed ALMProxy contract.
+     * @param  rateLimits     The deployed RateLimits contract.
+     * @param  agent          The deployed AdministeredAgent contract.
+     */
+    struct DeployResult {
+        IAccessControlsLike    accessControls;
+        IControllerLike        controller;
+        IALMProxyLike          proxy;
+        IRateLimitsLike        rateLimits;
+        IAdministeredAgentLike agent;
     }
 
     /**
@@ -53,25 +99,31 @@ interface IPAUAdministeredAgentFactory {
     /**
      * @notice Emitted once a full PAU stack and AdministeredAgent have been deployed and configured.
      * @param  admin                    The address granted the default admin role on the deployed contracts.
+     * @param  freezableProxy           Whether the deployed ALMProxy is the freezable variant.
      * @param  accessControls           The deployed AccessControls contract.
      * @param  controller               The deployed Controller contract.
      * @param  proxy                    The deployed ALMProxy contract.
      * @param  rateLimits               The deployed RateLimits contract.
      * @param  administeredAgent        The deployed AdministeredAgent contract.
-     * @param  integrationIds           The integration ids registered on the Controller.
+     * @param  freezers                 The freezers granted FREEZER_ROLE on the proxy (empty unless freezable).
+     * @param  integrationIds           The integration ids registered on the Controller (empty if none).
      * @param  adminConfig              The admin configuration applied across the stack.
      * @param  administeredAgentConfig  The configuration applied to the AdministeredAgent.
+     * @param  roleAdminConfig          The role-admin assignments applied to AccessControls.
      */
     event PAUAdministeredAgentFactoryDeploy(
         address indexed admin,
+        bool freezableProxy,
         address accessControls,
         address controller,
         address proxy,
         address rateLimits,
         address administeredAgent,
+        address[] freezers,
         bytes32[] integrationIds,
         AdminConfig adminConfig,
-        AdministeredAgentConfig administeredAgentConfig
+        AdministeredAgentConfig administeredAgentConfig,
+        AccessControlRoleAdminConfig[] roleAdminConfig
     );
 
     /**
@@ -99,16 +151,28 @@ interface IPAUAdministeredAgentFactory {
     function administeredAgentFactory() external view returns (IAdministeredAgentFactoryLike);
 
     /**
-     * @notice Deploys a full PAU stack plus an AdministeredAgent in a single transaction,
-     *         wires up roles, registers integrations on the Controller, configures the
-     *         AdministeredAgent with the supplied actors/grantors/revokers, and transfers
-     *         admin rights from this factory to `admin` (and any extra admins in `adminConfig`).
+     * @notice Deploys a full PAU stack with a *standard* ALMProxy plus an AdministeredAgent in a
+     *         single transaction, wires up roles, registers integrations on the Controller,
+     *         configures the AdministeredAgent with the supplied actors/grantors/revokers, applies
+     *         any AccessControls role-admin reassignments, and transfers admin rights from this
+     *         factory to `admin` (and any extra admins in `adminConfig`).
      * @dev    Emits {PAUAdministeredAgentFactoryDeploy} on completion. After this call, this
-     *         factory holds no privileged roles on any of the returned contracts.
+     *         factory holds no privileged roles on any of the returned contracts. The Controller is
+     *         granted CONTROLLER on the proxy (the role that gates `doCall` for a standard proxy).
+     *
+     *         Notes:
+     *         - When `integrationIds` is empty, the Controller `updateIntegrations` call is
+     *           skipped entirely (the Controller reverts on an empty array), so a stack can be
+     *           deployed with no integrations and configured later by an admin.
+     *         - `roleAdminConfig` entries are applied while this factory still holds
+     *           DEFAULT_ADMIN_ROLE on AccessControls; reassigning the admin of DEFAULT_ADMIN_ROLE
+     *           itself is the caller's responsibility and may interfere with the factory's own
+     *           role renunciation.
      * @param  admin                   Address that will receive the default admin role on the deployed contracts.
-     * @param  integrationIds          Integration ids to register on the Controller via `updateIntegrations`.
+     * @param  integrationIds          Integration ids to register on the Controller via `updateIntegrations` (may be empty).
      * @param  adminConfig             Additional admins to grant across the deployed stack.
      * @param  administeredAgentConfig Actor/grantor/revoker configuration for the AdministeredAgent.
+     * @param  roleAdminConfig         Role-admin assignments to apply to the AccessControls contract.
      * @return accessControls          The deployed AccessControls contract.
      * @return controller              The deployed Controller contract.
      * @return proxy                   The deployed ALMProxy contract.
@@ -119,7 +183,44 @@ interface IPAUAdministeredAgentFactory {
         address admin,
         bytes32[] calldata integrationIds,
         AdminConfig calldata adminConfig,
-        AdministeredAgentConfig calldata administeredAgentConfig
+        AdministeredAgentConfig calldata administeredAgentConfig,
+        AccessControlRoleAdminConfig[] calldata roleAdminConfig
+    )
+        external
+        returns (
+            IAccessControlsLike accessControls,
+            IControllerLike controller,
+            IALMProxyLike proxy,
+            IRateLimitsLike rateLimits,
+            IAdministeredAgentLike agent
+        );
+
+    /**
+     * @notice Identical to {deploy} but deploys the *freezable* ALMProxy variant and grants
+     *         FREEZER_ROLE on it to each address in `freezers`.
+     * @dev    Emits {PAUAdministeredAgentFactoryDeploy} on completion. The Controller is granted
+     *         ALLOCATOR_ROLE on the proxy (the role that gates `doCall` for a freezable proxy)
+     *         rather than CONTROLLER. See {deploy} for the shared `integrationIds`/`roleAdminConfig`
+     *         notes.
+     * @param  admin                   Address that will receive the default admin role on the deployed contracts.
+     * @param  freezers                Addresses granted FREEZER_ROLE on the freezable ALMProxy.
+     * @param  integrationIds          Integration ids to register on the Controller via `updateIntegrations` (may be empty).
+     * @param  adminConfig             Additional admins to grant across the deployed stack.
+     * @param  administeredAgentConfig Actor/grantor/revoker configuration for the AdministeredAgent.
+     * @param  roleAdminConfig         Role-admin assignments to apply to the AccessControls contract.
+     * @return accessControls          The deployed AccessControls contract.
+     * @return controller              The deployed Controller contract.
+     * @return proxy                   The deployed (freezable) ALMProxy contract.
+     * @return rateLimits              The deployed RateLimits contract.
+     * @return agent                   The deployed AdministeredAgent contract.
+     */
+    function deployFreezable(
+        address admin,
+        address[] calldata freezers,
+        bytes32[] calldata integrationIds,
+        AdminConfig calldata adminConfig,
+        AdministeredAgentConfig calldata administeredAgentConfig,
+        AccessControlRoleAdminConfig[] calldata roleAdminConfig
     )
         external
         returns (
