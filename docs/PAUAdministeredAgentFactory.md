@@ -117,7 +117,7 @@ the proxy), or pass a `roleAdminConfig` entry.
 
 ### `AdminConfig`
 
-Extra `DEFAULT_ADMIN_ROLE` holders granted **in addition to** `admin`:
+Additional admins granted **in addition to** the system-wide `admin`:
 
 | Field                     | Granted on        |
 | ------------------------- | ----------------- |
@@ -125,6 +125,10 @@ Extra `DEFAULT_ADMIN_ROLE` holders granted **in addition to** `admin`:
 | `proxyAdmins`             | ALMProxy          |
 | `rateLimitsAdmins`        | RateLimits        |
 | `administeredAgentAdmins` | AdministeredAgent |
+
+> `admin` is the **system-wide admin** and is always granted admin rights on every component, so it
+> must **not** be repeated in any `AdminConfig` array. Listing it in `administeredAgentAdmins` reverts
+> (`AlreadyAdmin`); in the other arrays it is a redundant no-op.
 
 ### `AdministeredAgentConfig`
 

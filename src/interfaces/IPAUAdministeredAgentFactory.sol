@@ -31,8 +31,10 @@ interface IPAUAdministeredAgentFactory {
     /**********************************************************************************************/
 
     /**
-     * @notice Admin addresses to be granted the default admin role on each
-     *         component of the deployed stack, in addition to the primary `admin`.
+     * @notice Additional admins to be granted admin rights on each component of the deployed stack, on
+     *         top of the system-wide `admin`. The factory always grants `admin` admin rights on every
+     *         component, so `admin` must NOT be repeated here: listing it in `administeredAgentAdmins`
+     *         reverts (`AlreadyAdmin`), and in the other arrays it is a redundant no-op.
      * @param  accessControlAdmins     Extra admins for the AccessControls contract.
      * @param  proxyAdmins             Extra admins for the ALMProxy contract.
      * @param  rateLimitsAdmins        Extra admins for the RateLimits contract.
@@ -170,7 +172,9 @@ interface IPAUAdministeredAgentFactory {
      *           DEFAULT_ADMIN_ROLE on AccessControls; reassigning the admin of DEFAULT_ADMIN_ROLE
      *           itself is the caller's responsibility and may interfere with the factory's own
      *           role renunciation.
-     * @param  admin                   Address that will receive the default admin role on the deployed contracts.
+     * @param  admin                   System-wide admin, granted admin rights on every deployed component
+     *                                 (AccessControls, ALMProxy, RateLimits, AdministeredAgent). Must not
+     *                                 be repeated in `adminConfig` (see {AdminConfig}).
      * @param  integrationIds          Integration ids to register on the Controller via `updateIntegrations` (may be empty).
      * @param  adminConfig             Additional admins to grant across the deployed stack.
      * @param  administeredAgentConfig Actor/grantor/revoker configuration for the AdministeredAgent.
@@ -204,7 +208,9 @@ interface IPAUAdministeredAgentFactory {
      *         ALLOCATOR_ROLE on the proxy (the role that gates `doCall` for a freezable proxy)
      *         rather than CONTROLLER. See {deploy} for the shared `integrationIds`/`roleAdminConfig`
      *         notes.
-     * @param  admin                   Address that will receive the default admin role on the deployed contracts.
+     * @param  admin                   System-wide admin, granted admin rights on every deployed component
+     *                                 (AccessControls, ALMProxy, RateLimits, AdministeredAgent). Must not
+     *                                 be repeated in `adminConfig` (see {AdminConfig}).
      * @param  freezers                Addresses granted FREEZER_ROLE on the freezable ALMProxy.
      * @param  integrationIds          Integration ids to register on the Controller via `updateIntegrations` (may be empty).
      * @param  adminConfig             Additional admins to grant across the deployed stack.

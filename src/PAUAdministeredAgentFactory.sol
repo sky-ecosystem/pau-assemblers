@@ -112,9 +112,6 @@ contract PAUAdministeredAgentFactory is IPAUAdministeredAgentFactory {
     /*** External Interactive Functions                                                         ***/
     /**********************************************************************************************/
 
-    //TODO: Should we rename admin to `globalAdmin` or to `subproxy`?
-    //     - Thought is that it could be confusing with the other
-    //     -`adminConfig` since `admin` is on the entire system.
     /// @inheritdoc IPAUAdministeredAgentFactory
     function deploy(
         address admin,
