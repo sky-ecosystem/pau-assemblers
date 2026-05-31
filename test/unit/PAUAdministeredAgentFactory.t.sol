@@ -198,7 +198,6 @@ contract PAUAdministeredAgentFactory_Deploy_Tests is PAUAdministeredAgentFactory
 
         IPAUAdministeredAgentFactory.AdministeredAgentConfig memory agentConfig =
             IPAUAdministeredAgentFactory.AdministeredAgentConfig({
-                ids:      _oneIntegration(),
                 actors:   _slice(40, 3),
                 grantors: _slice(50, 3),
                 revokers: _slice(60, 3)
@@ -416,7 +415,6 @@ contract PAUAdministeredAgentFactory_Deploy_Tests is PAUAdministeredAgentFactory
 
         IPAUAdministeredAgentFactory.AdministeredAgentConfig memory agentConfig =
             IPAUAdministeredAgentFactory.AdministeredAgentConfig({
-                ids:      _oneIntegration(),
                 actors:   _slice(2000, nActors),
                 grantors: _slice(3000, nGrantors),
                 revokers: _slice(4000, nRevokers)

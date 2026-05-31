@@ -91,7 +91,6 @@ contract PAUAdministeredAgentFactory_TransferAsset_Integration_Tests is Test {
 
         IPAUAdministeredAgentFactory.AdministeredAgentConfig memory agentConfig =
             IPAUAdministeredAgentFactory.AdministeredAgentConfig({
-                ids:      integrationIds,
                 actors:   actors,
                 grantors: new address[](0),
                 revokers: new address[](0)
@@ -147,7 +146,6 @@ contract PAUAdministeredAgentFactory_TransferAsset_Integration_Tests is Test {
             integrationIds,
             adminConfig,
             IPAUAdministeredAgentFactory.AdministeredAgentConfig({
-                ids:      integrationIds,
                 actors:   new address[](0),
                 grantors: new address[](0),
                 revokers: new address[](0)

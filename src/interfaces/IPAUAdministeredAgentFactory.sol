@@ -76,13 +76,11 @@ interface IPAUAdministeredAgentFactory {
 
     /**
      * @notice Configuration applied to the AdministeredAgent after deployment.
-     * @param  ids      Integration ids associated with the agent.
      * @param  actors   Addresses to configure as actors on the agent.
      * @param  grantors Addresses authorised to grant roles on the agent.
      * @param  revokers Addresses authorised to revoke roles on the agent.
      */
     struct AdministeredAgentConfig {
-        bytes32[] ids;
         address[] actors;
         address[] grantors;
         address[] revokers;

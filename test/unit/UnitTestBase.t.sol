@@ -57,7 +57,6 @@ abstract contract UnitTestBase is Test {
         returns (IPAUAdministeredAgentFactory.AdministeredAgentConfig memory config)
     {
         config = IPAUAdministeredAgentFactory.AdministeredAgentConfig({
-            ids:      new bytes32[](0),
             actors:   new address[](0),
             grantors: new address[](0),
             revokers: new address[](0)
