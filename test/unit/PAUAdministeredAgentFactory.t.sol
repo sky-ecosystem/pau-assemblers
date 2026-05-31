@@ -9,22 +9,17 @@ import { PAUAdministeredAgentFactory } from "../../src/PAUAdministeredAgentFacto
 
 import {
     IPAUFactoryLike,
-    IAdministeredAgentFactoryLike,
-    IAccessControlsLike,
-    IControllerLike,
-    IALMProxyLike,
-    IRateLimitsLike,
-    IAdministeredAgentLike
+    IAdministeredAgentFactoryLike
 } from "../../src/PAUAdministeredAgentFactory.sol";
 
-import { IPAUAdministeredAgentFactory } from "../../src/interfaces/PAUAdministeredAgentFactory.sol";
+import { IPAUAdministeredAgentFactory } from "../../src/interfaces/IPAUAdministeredAgentFactory.sol";
 
 import { MockPAUFactory, MockController } from "../mocks/Mocks.sol";
 
 import { AdministeredAgentFactory } from "../../lib/pau-administered-agent/src/AdministeredAgentFactory.sol";
 import { IAdministeredAgent }        from "../../lib/pau-administered-agent/src/interfaces/IAdministeredAgent.sol";
 
-abstract contract PAUAdministeredAgentFactoryTestBase is UnitTestBase {
+abstract contract PAUAdministeredAgentFactory_TestBase is UnitTestBase {
 
     struct Deployed {
         IAccessControlReader accessControls;
@@ -73,11 +68,11 @@ abstract contract PAUAdministeredAgentFactoryTestBase is UnitTestBase {
         returns (Deployed memory d)
     {
         (
-            IAccessControlsLike ac,
-            IControllerLike ctrl,
-            IALMProxyLike px,
-            IRateLimitsLike rl,
-            IAdministeredAgentLike ag
+            address ac,
+            address ctrl,
+            address px,
+            address rl,
+            address ag
         ) = factory.deploy(admin_, ids, adminConfig, agentConfig, roleAdminConfig);
 
         return _wrap(ac, ctrl, px, rl, ag);
@@ -95,32 +90,32 @@ abstract contract PAUAdministeredAgentFactoryTestBase is UnitTestBase {
         returns (Deployed memory d)
     {
         (
-            IAccessControlsLike ac,
-            IControllerLike ctrl,
-            IALMProxyLike px,
-            IRateLimitsLike rl,
-            IAdministeredAgentLike ag
+            address ac,
+            address ctrl,
+            address px,
+            address rl,
+            address ag
         ) = factory.deployFreezable(admin_, freezers, ids, adminConfig, agentConfig, roleAdminConfig);
 
         return _wrap(ac, ctrl, px, rl, ag);
     }
 
     function _wrap(
-        IAccessControlsLike ac,
-        IControllerLike ctrl,
-        IALMProxyLike px,
-        IRateLimitsLike rl,
-        IAdministeredAgentLike ag
+        address ac,
+        address ctrl,
+        address px,
+        address rl,
+        address ag
     )
         private
         pure
         returns (Deployed memory d)
     {
-        d.accessControls = IAccessControlReader(address(ac));
-        d.controller     = MockController(address(ctrl));
-        d.proxy          = IAccessControlReader(address(px));
-        d.rateLimits     = IAccessControlReader(address(rl));
-        d.agent          = IAdministeredAgent(address(ag));
+        d.accessControls = IAccessControlReader(ac);
+        d.controller     = MockController(ctrl);
+        d.proxy          = IAccessControlReader(px);
+        d.rateLimits     = IAccessControlReader(rl);
+        d.agent          = IAdministeredAgent(ag);
     }
 
     /// @dev `n` globally-unique, non-zero addresses starting at index `start`.
@@ -133,7 +128,7 @@ abstract contract PAUAdministeredAgentFactoryTestBase is UnitTestBase {
 
 }
 
-contract PAUAdministeredAgentFactoryConstructorTests is PAUAdministeredAgentFactoryTestBase {
+contract PAUAdministeredAgentFactory_Constructor_Tests is PAUAdministeredAgentFactory_TestBase {
 
     function test_initialState() external view {
         assertEq(address(factory.pauFactory()),               address(pauFactory));
@@ -142,7 +137,7 @@ contract PAUAdministeredAgentFactoryConstructorTests is PAUAdministeredAgentFact
         assertEq(factory.ALLOCATOR_ROLE(),                    ALLOCATOR_ROLE);
     }
 
-    function test_constructor_revert_zeroPAUFactory() external {
+    function test_constructor_zeroPAUFactory() external {
         vm.expectRevert(IPAUAdministeredAgentFactory.ZeroPAUFactory.selector);
         new PAUAdministeredAgentFactory(
             IPAUFactoryLike(address(0)),
@@ -150,7 +145,7 @@ contract PAUAdministeredAgentFactoryConstructorTests is PAUAdministeredAgentFact
         );
     }
 
-    function test_constructor_revert_zeroAdministeredAgentFactory() external {
+    function test_constructor_zeroAdministeredAgentFactory() external {
         vm.expectRevert(IPAUAdministeredAgentFactory.ZeroAdministeredAgentFactory.selector);
         new PAUAdministeredAgentFactory(
             IPAUFactoryLike(address(pauFactory)),
@@ -160,7 +155,7 @@ contract PAUAdministeredAgentFactoryConstructorTests is PAUAdministeredAgentFact
 
 }
 
-contract PAUAdministeredAgentFactoryDeployTests is PAUAdministeredAgentFactoryTestBase {
+contract PAUAdministeredAgentFactory_Deploy_Tests is PAUAdministeredAgentFactory_TestBase {
 
     function test_deploy_minimal_rolesAndRenounce() external {
         bytes32[] memory ids = _oneIntegration();
@@ -294,13 +289,13 @@ contract PAUAdministeredAgentFactoryDeployTests is PAUAdministeredAgentFactoryTe
         assertFalse(d.accessControls.hasRole(DEFAULT_ADMIN_ROLE, address(factory)));
     }
 
-    function test_deploy_revert_zeroAdmin() external {
+    function test_deploy_zeroAdmin() external {
         vm.expectRevert(IPAUAdministeredAgentFactory.ZeroAdmin.selector);
         _deploy(address(0), _oneIntegration(), _emptyAdminConfig(), _emptyAgentConfig());
     }
 
     // GAP: duplicate actors abort the entire deploy (AdministeredAgent rejects re-adds).
-    function test_deploy_revert_duplicateActor() external {
+    function test_deploy_duplicateActor() external {
         address dup = _addr(99);
         address[] memory actors = new address[](2);
         actors[0] = dup;
@@ -314,7 +309,7 @@ contract PAUAdministeredAgentFactoryDeployTests is PAUAdministeredAgentFactoryTe
     }
 
     // GAP: passing `admin` again inside administeredAgentAdmins aborts the deploy.
-    function test_deploy_revert_adminDuplicatedAsAgentAdmin() external {
+    function test_deploy_adminDuplicatedAsAgentAdmin() external {
         address[] memory agentAdmins = new address[](1);
         agentAdmins[0] = admin;
 
@@ -325,7 +320,7 @@ contract PAUAdministeredAgentFactoryDeployTests is PAUAdministeredAgentFactoryTe
         _deploy(admin, _oneIntegration(), adminConfig, _emptyAgentConfig());
     }
 
-    function test_deploy_revert_duplicateGrantor() external {
+    function test_deploy_duplicateGrantor() external {
         address dup = _addr(123);
         address[] memory grantors = new address[](2);
         grantors[0] = dup;

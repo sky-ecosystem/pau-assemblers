@@ -1,23 +1,15 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity ^0.8.34;
 
-import {
-    IPAUFactoryLike,
-    IAdministeredAgentFactoryLike,
-    IRateLimitsLike,
-    IALMProxyLike,
-    IAccessControlsLike,
-    IControllerLike,
-    IAdministeredAgentLike
-} from "../PAUAdministeredAgentFactory.sol";
-
 /**
  * @title  IPAUAdministeredAgentFactory
  * @notice External interface for the {PAUAdministeredAgentFactory}, a one-shot helper
  *         that deploys and wires together a full PAU stack (AccessControls, ALMProxy,
- *         RateLimits, Controller) plus an AdministeredAgent atop an underlying
- *         {IPAUFactoryLike}, registers integrations, configures the agent, and hands
- *         all admin rights to the caller-supplied admin while renouncing its own.
+ *         RateLimits, Controller) plus an AdministeredAgent atop an underlying PAU factory,
+ *         registers integrations, configures the agent, and hands all admin rights to the
+ *         caller-supplied admin while renouncing its own.
+ * @dev    All deployed contracts are returned as plain addresses; callers cast them to the
+ *         relevant component interfaces as needed.
  */
 interface IPAUAdministeredAgentFactory {
 
@@ -75,11 +67,11 @@ interface IPAUAdministeredAgentFactory {
      * @param  agent          The deployed AdministeredAgent contract.
      */
     struct DeployResult {
-        IAccessControlsLike    accessControls;
-        IControllerLike        controller;
-        IALMProxyLike          proxy;
-        IRateLimitsLike        rateLimits;
-        IAdministeredAgentLike agent;
+        address accessControls;
+        address controller;
+        address proxy;
+        address rateLimits;
+        address agent;
     }
 
     /**
@@ -95,6 +87,10 @@ interface IPAUAdministeredAgentFactory {
         address[] grantors;
         address[] revokers;
     }
+
+    /**********************************************************************************************/
+    /*** Events                                                                                 ***/
+    /**********************************************************************************************/
 
     /**
      * @notice Emitted once a full PAU stack and AdministeredAgent have been deployed and configured.
@@ -126,6 +122,10 @@ interface IPAUAdministeredAgentFactory {
         AccessControlRoleAdminConfig[] roleAdminConfig
     );
 
+    /**********************************************************************************************/
+    /*** View/Pure Functions                                                                    ***/
+    /**********************************************************************************************/
+
     /**
      * @notice The allocator role granted to the AdministeredAgent on the AccessControls contract.
      * @return The ALLOCATOR_ROLE identifier.
@@ -140,15 +140,19 @@ interface IPAUAdministeredAgentFactory {
 
     /**
      * @notice The underlying PAU factory used to deploy each individual component.
-     * @return The IPAUFactoryLike-compatible factory.
+     * @return The address of the PAU factory.
      */
-    function pauFactory() external view returns (IPAUFactoryLike);
+    function pauFactory() external view returns (address);
 
     /**
      * @notice The factory used to deploy the AdministeredAgent.
-     * @return The IAdministeredAgentFactoryLike-compatible factory.
+     * @return The address of the AdministeredAgent factory.
      */
-    function administeredAgentFactory() external view returns (IAdministeredAgentFactoryLike);
+    function administeredAgentFactory() external view returns (address);
+
+    /**********************************************************************************************/
+    /*** Interactive Functions                                                                  ***/
+    /**********************************************************************************************/
 
     /**
      * @notice Deploys a full PAU stack with a *standard* ALMProxy plus an AdministeredAgent in a
@@ -188,11 +192,11 @@ interface IPAUAdministeredAgentFactory {
     )
         external
         returns (
-            IAccessControlsLike accessControls,
-            IControllerLike controller,
-            IALMProxyLike proxy,
-            IRateLimitsLike rateLimits,
-            IAdministeredAgentLike agent
+            address accessControls,
+            address controller,
+            address proxy,
+            address rateLimits,
+            address agent
         );
 
     /**
@@ -224,11 +228,11 @@ interface IPAUAdministeredAgentFactory {
     )
         external
         returns (
-            IAccessControlsLike accessControls,
-            IControllerLike controller,
-            IALMProxyLike proxy,
-            IRateLimitsLike rateLimits,
-            IAdministeredAgentLike agent
+            address accessControls,
+            address controller,
+            address proxy,
+            address rateLimits,
+            address agent
         );
 
 }

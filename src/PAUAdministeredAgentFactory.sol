@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity ^0.8.34;
 
-import { IPAUAdministeredAgentFactory } from "./interfaces/PAUAdministeredAgentFactory.sol";
+import { IPAUAdministeredAgentFactory } from "./interfaces/IPAUAdministeredAgentFactory.sol";
 
 interface IPAUFactoryLike {
 
@@ -25,7 +25,7 @@ interface IAdministeredAgentFactoryLike {
 
 }
 
-interface IRoleGrantable {
+interface IRoleGrantableLike {
 
     function grantRole(bytes32 role, address account) external;
 
@@ -33,11 +33,11 @@ interface IRoleGrantable {
 
 }
 
-interface IRateLimitsLike is IRoleGrantable {}
+interface IRateLimitsLike is IRoleGrantableLike {}
 
-interface IALMProxyLike is IRoleGrantable {}
+interface IALMProxyLike is IRoleGrantableLike {}
 
-interface IAccessControlsLike is IRoleGrantable {
+interface IAccessControlsLike is IRoleGrantableLike {
 
     function setRoleAdmin(bytes32 role, bytes32 adminRole) external;
 
@@ -73,11 +73,16 @@ interface IAdministeredAgentLike {
  */
 contract PAUAdministeredAgentFactory is IPAUAdministeredAgentFactory {
 
-    /// @inheritdoc IPAUAdministeredAgentFactory
-    IPAUFactoryLike public immutable override pauFactory;
+    /**********************************************************************************************/
+    /*** Declarations                                                                           ***/
+    /**********************************************************************************************/
 
-    /// @inheritdoc IPAUAdministeredAgentFactory
-    IAdministeredAgentFactoryLike public immutable override administeredAgentFactory;
+    IPAUFactoryLike               internal immutable _pauFactory;
+    IAdministeredAgentFactoryLike internal immutable _administeredAgentFactory;
+
+    /**********************************************************************************************/
+    /*** Constants                                                                              ***/
+    /**********************************************************************************************/
 
     bytes32 internal constant _DEFAULT_ADMIN_ROLE = 0x00;
 
@@ -91,12 +96,16 @@ contract PAUAdministeredAgentFactory is IPAUAdministeredAgentFactory {
     /// @inheritdoc IPAUAdministeredAgentFactory
     string public constant override VERSION = "1.0.0";
 
-    constructor(IPAUFactoryLike _pauFactory, IAdministeredAgentFactoryLike _administeredAgentFactory) {
-        require(address(_pauFactory)               != address(0), ZeroPAUFactory());
-        require(address(_administeredAgentFactory) != address(0), ZeroAdministeredAgentFactory());
+    /**********************************************************************************************/
+    /*** Constructor                                                                            ***/
+    /**********************************************************************************************/
 
-        pauFactory               = _pauFactory;
-        administeredAgentFactory = _administeredAgentFactory;
+    constructor(IPAUFactoryLike pauFactory_, IAdministeredAgentFactoryLike administeredAgentFactory_) {
+        require(address(pauFactory_)               != address(0), ZeroPAUFactory());
+        require(address(administeredAgentFactory_) != address(0), ZeroAdministeredAgentFactory());
+
+        _pauFactory               = pauFactory_;
+        _administeredAgentFactory = administeredAgentFactory_;
     }
 
     /**********************************************************************************************/
@@ -117,11 +126,11 @@ contract PAUAdministeredAgentFactory is IPAUAdministeredAgentFactory {
         external
         override
         returns (
-            IAccessControlsLike accessControls,
-            IControllerLike controller,
-            IALMProxyLike proxy,
-            IRateLimitsLike rateLimits,
-            IAdministeredAgentLike agent
+            address accessControls,
+            address controller,
+            address proxy,
+            address rateLimits,
+            address agent
         )
     {
         return _deploy(
@@ -147,11 +156,11 @@ contract PAUAdministeredAgentFactory is IPAUAdministeredAgentFactory {
         external
         override
         returns (
-            IAccessControlsLike accessControls,
-            IControllerLike controller,
-            IALMProxyLike proxy,
-            IRateLimitsLike rateLimits,
-            IAdministeredAgentLike agent
+            address accessControls,
+            address controller,
+            address proxy,
+            address rateLimits,
+            address agent
         )
     {
         return _deploy(
@@ -163,6 +172,20 @@ contract PAUAdministeredAgentFactory is IPAUAdministeredAgentFactory {
             administeredAgentConfig,
             roleAdminConfig
         );
+    }
+
+    /**********************************************************************************************/
+    /*** External Variable Getters                                                              ***/
+    /**********************************************************************************************/
+
+    /// @inheritdoc IPAUAdministeredAgentFactory
+    function pauFactory() external view override returns (address) {
+        return address(_pauFactory);
+    }
+
+    /// @inheritdoc IPAUAdministeredAgentFactory
+    function administeredAgentFactory() external view override returns (address) {
+        return address(_administeredAgentFactory);
     }
 
     /**********************************************************************************************/
@@ -178,14 +201,8 @@ contract PAUAdministeredAgentFactory is IPAUAdministeredAgentFactory {
         AdministeredAgentConfig memory administeredAgentConfig,
         AccessControlRoleAdminConfig[] memory roleAdminConfig
     )
-        private
-        returns (
-            IAccessControlsLike,
-            IControllerLike,
-            IALMProxyLike,
-            IRateLimitsLike,
-            IAdministeredAgentLike
-        )
+        internal
+        returns (address, address, address, address, address)
     {
         require(admin != address(0), ZeroAdmin());
 
@@ -212,29 +229,27 @@ contract PAUAdministeredAgentFactory is IPAUAdministeredAgentFactory {
         return (d.accessControls, d.controller, d.proxy, d.rateLimits, d.agent);
     }
 
-    function _deployStack(bool freezableProxy) private returns (DeployResult memory d) {
-        d.accessControls = IAccessControlsLike(pauFactory.deployAccessControls(address(this)));
-        d.proxy          = IALMProxyLike(
-            freezableProxy
-                ? pauFactory.deployALMProxyFreezable(address(this))
-                : pauFactory.deployALMProxy(address(this))
-        );
-        d.rateLimits     = IRateLimitsLike(pauFactory.deployRateLimits(address(this)));
-        d.controller     = IControllerLike(
-            pauFactory.deployController(address(d.accessControls), address(d.proxy), address(d.rateLimits))
-        );
-        d.agent          = IAdministeredAgentLike(administeredAgentFactory.deploy(address(this)));
+    function _deployStack(bool freezableProxy) internal returns (DeployResult memory d) {
+        d.accessControls = _pauFactory.deployAccessControls(address(this));
+        d.proxy          = freezableProxy
+            ? _pauFactory.deployALMProxyFreezable(address(this))
+            : _pauFactory.deployALMProxy(address(this));
+        d.rateLimits     = _pauFactory.deployRateLimits(address(this));
+        d.controller     = _pauFactory.deployController(d.accessControls, d.proxy, d.rateLimits);
+        d.agent          = _administeredAgentFactory.deploy(address(this));
     }
 
-    function _configureAgent(IAdministeredAgentLike agent, AdministeredAgentConfig memory cfg) private {
+    function _configureAgent(address agent, AdministeredAgentConfig memory cfg) internal {
+        IAdministeredAgentLike a = IAdministeredAgentLike(agent);
+
         for (uint256 i = 0; i < cfg.actors.length; i++) {
-            agent.addActor(cfg.actors[i]);
+            a.addActor(cfg.actors[i]);
         }
         for (uint256 i = 0; i < cfg.grantors.length; i++) {
-            agent.addGrantor(cfg.grantors[i]);
+            a.addGrantor(cfg.grantors[i]);
         }
         for (uint256 i = 0; i < cfg.revokers.length; i++) {
-            agent.addRevoker(cfg.revokers[i]);
+            a.addRevoker(cfg.revokers[i]);
         }
     }
 
@@ -245,64 +260,64 @@ contract PAUAdministeredAgentFactory is IPAUAdministeredAgentFactory {
         address[] memory freezers,
         AdminConfig memory adminConfig
     )
-        private
+        internal
     {
         // The Controller routes calls through the proxy: a standard ALMProxy gates `doCall` on
         // CONTROLLER, a freezable ALMProxy gates it on ALLOCATOR_ROLE. RateLimits always uses
         // CONTROLLER.
-        d.proxy.grantRole(freezableProxy ? ALLOCATOR_ROLE : _CONTROLLER_ROLE, address(d.controller));
-        d.rateLimits.grantRole(_CONTROLLER_ROLE, address(d.controller));
+        IALMProxyLike(d.proxy).grantRole(freezableProxy ? ALLOCATOR_ROLE : _CONTROLLER_ROLE, d.controller);
+        IRateLimitsLike(d.rateLimits).grantRole(_CONTROLLER_ROLE, d.controller);
 
         // Freezers can remove the allocator on a freezable proxy (no-op list for a standard proxy).
         for (uint256 i = 0; i < freezers.length; i++) {
-            d.proxy.grantRole(_FREEZER_ROLE, freezers[i]);
+            IALMProxyLike(d.proxy).grantRole(_FREEZER_ROLE, freezers[i]);
         }
 
         // DEFAULT_ADMIN_ROLE to `admin` plus any extras, on each component.
-        _grantDefaultAdmins(address(d.proxy),          admin, adminConfig.proxyAdmins);
-        _grantDefaultAdmins(address(d.rateLimits),     admin, adminConfig.rateLimitsAdmins);
-        _grantDefaultAdmins(address(d.accessControls), admin, adminConfig.controllerAdmins);
+        _grantDefaultAdmins(d.proxy,          admin, adminConfig.proxyAdmins);
+        _grantDefaultAdmins(d.rateLimits,     admin, adminConfig.rateLimitsAdmins);
+        _grantDefaultAdmins(d.accessControls, admin, adminConfig.controllerAdmins);
 
         // Admins on the AdministeredAgent.
-        d.agent.addAdmin(admin);
+        IAdministeredAgentLike(d.agent).addAdmin(admin);
         for (uint256 i = 0; i < adminConfig.administeredAgentAdmins.length; i++) {
-            d.agent.addAdmin(adminConfig.administeredAgentAdmins[i]);
+            IAdministeredAgentLike(d.agent).addAdmin(adminConfig.administeredAgentAdmins[i]);
         }
 
         // The AdministeredAgent is the allocator on AccessControls.
-        d.accessControls.grantRole(ALLOCATOR_ROLE, address(d.agent));
+        IAccessControlsLike(d.accessControls).grantRole(ALLOCATOR_ROLE, d.agent);
     }
 
-    function _grantDefaultAdmins(address target, address admin, address[] memory extra) private {
-        IRoleGrantable(target).grantRole(_DEFAULT_ADMIN_ROLE, admin);
+    function _grantDefaultAdmins(address target, address admin, address[] memory extra) internal {
+        IRoleGrantableLike(target).grantRole(_DEFAULT_ADMIN_ROLE, admin);
         for (uint256 i = 0; i < extra.length; i++) {
-            IRoleGrantable(target).grantRole(_DEFAULT_ADMIN_ROLE, extra[i]);
+            IRoleGrantableLike(target).grantRole(_DEFAULT_ADMIN_ROLE, extra[i]);
         }
     }
 
-    function _registerIntegrations(IControllerLike controller, bytes32[] memory integrationIds) private {
+    function _registerIntegrations(address controller, bytes32[] memory integrationIds) internal {
         // Controller.updateIntegrations reverts on an empty array, so skip the call when none given.
         if (integrationIds.length > 0) {
-            controller.updateIntegrations(integrationIds);
+            IControllerLike(controller).updateIntegrations(integrationIds);
         }
     }
 
     function _applyRoleAdmins(
-        IAccessControlsLike accessControls,
+        address accessControls,
         AccessControlRoleAdminConfig[] memory roleAdminConfig
     )
-        private
+        internal
     {
         for (uint256 i = 0; i < roleAdminConfig.length; i++) {
-            accessControls.setRoleAdmin(roleAdminConfig[i].role, roleAdminConfig[i].adminRole);
+            IAccessControlsLike(accessControls).setRoleAdmin(roleAdminConfig[i].role, roleAdminConfig[i].adminRole);
         }
     }
 
-    function _renounce(DeployResult memory d) private {
-        d.proxy.revokeRole(_DEFAULT_ADMIN_ROLE,          address(this));
-        d.rateLimits.revokeRole(_DEFAULT_ADMIN_ROLE,     address(this));
-        d.accessControls.revokeRole(_DEFAULT_ADMIN_ROLE, address(this));
-        d.agent.removeAdmin(address(this));
+    function _renounce(DeployResult memory d) internal {
+        IRoleGrantableLike(d.proxy).revokeRole(_DEFAULT_ADMIN_ROLE,          address(this));
+        IRoleGrantableLike(d.rateLimits).revokeRole(_DEFAULT_ADMIN_ROLE,     address(this));
+        IRoleGrantableLike(d.accessControls).revokeRole(_DEFAULT_ADMIN_ROLE, address(this));
+        IAdministeredAgentLike(d.agent).removeAdmin(address(this));
     }
 
     /// @dev Emits {PAUAdministeredAgentFactoryDeploy} in its own frame to keep the deploy flow
@@ -317,16 +332,16 @@ contract PAUAdministeredAgentFactory is IPAUAdministeredAgentFactory {
         AdministeredAgentConfig memory administeredAgentConfig,
         AccessControlRoleAdminConfig[] memory roleAdminConfig
     )
-        private
+        internal
     {
         emit PAUAdministeredAgentFactoryDeploy(
             admin,
             freezableProxy,
-            address(d.accessControls),
-            address(d.controller),
-            address(d.proxy),
-            address(d.rateLimits),
-            address(d.agent),
+            d.accessControls,
+            d.controller,
+            d.proxy,
+            d.rateLimits,
+            d.agent,
             freezers,
             integrationIds,
             adminConfig,

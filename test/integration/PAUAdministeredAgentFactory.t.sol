@@ -7,15 +7,10 @@ import { PAUAdministeredAgentFactory } from "../../src/PAUAdministeredAgentFacto
 
 import {
     IPAUFactoryLike,
-    IAdministeredAgentFactoryLike,
-    IAccessControlsLike,
-    IControllerLike,
-    IALMProxyLike,
-    IRateLimitsLike,
-    IAdministeredAgentLike
+    IAdministeredAgentFactoryLike
 } from "../../src/PAUAdministeredAgentFactory.sol";
 
-import { IPAUAdministeredAgentFactory } from "../../src/interfaces/PAUAdministeredAgentFactory.sol";
+import { IPAUAdministeredAgentFactory } from "../../src/interfaces/IPAUAdministeredAgentFactory.sol";
 
 import { PAUFactory }               from "../../lib/diamond-pau/src/PAUFactory.sol";
 import { AdministeredAgentFactory } from "../../lib/pau-administered-agent/src/AdministeredAgentFactory.sol";
@@ -29,7 +24,7 @@ interface IACL {
  * @notice Integration coverage against the *canonical* diamond-pau PAUFactory and the real
  *         AdministeredAgentFactory (no mocks). Exercises the adapter against the real bytecode.
  */
-contract PAUAdministeredAgentFactoryIntegrationTests is Test {
+contract PAUAdministeredAgentFactory_Integration_Tests is Test {
 
     bytes32 internal constant DEFAULT_ADMIN_ROLE = 0x00;
     bytes32 internal constant CONTROLLER_ROLE    = keccak256("CONTROLLER");
@@ -90,7 +85,7 @@ contract PAUAdministeredAgentFactoryIntegrationTests is Test {
     // End-to-end against the real PAU stack. With no integrations the Controller call is skipped,
     // so a full stack deploys and wires without needing a configured Beacon.
     function test_deploy_standardProxy_endToEnd() external {
-        ( , IControllerLike controller, IALMProxyLike proxy, IRateLimitsLike rateLimits, IAdministeredAgentLike agent)
+        ( , address controller, address proxy, address rateLimits, address agent)
             = factory.deploy(
                 admin,
                 new bytes32[](0),
@@ -119,7 +114,7 @@ contract PAUAdministeredAgentFactoryIntegrationTests is Test {
         address[] memory freezers = new address[](1);
         freezers[0] = freezer;
 
-        ( , IControllerLike controller, IALMProxyLike proxy, , )
+        ( , address controller, address proxy, , )
             = factory.deployFreezable(
                 admin,
                 freezers,

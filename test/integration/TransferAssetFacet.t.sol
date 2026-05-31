@@ -7,14 +7,10 @@ import { PAUAdministeredAgentFactory } from "../../src/PAUAdministeredAgentFacto
 
 import {
     IPAUFactoryLike,
-    IAdministeredAgentFactoryLike,
-    IControllerLike,
-    IALMProxyLike,
-    IRateLimitsLike,
-    IAdministeredAgentLike
+    IAdministeredAgentFactoryLike
 } from "../../src/PAUAdministeredAgentFactory.sol";
 
-import { IPAUAdministeredAgentFactory } from "../../src/interfaces/PAUAdministeredAgentFactory.sol";
+import { IPAUAdministeredAgentFactory } from "../../src/interfaces/IPAUAdministeredAgentFactory.sol";
 
 import { Beacon }     from "../../lib/diamond-pau/src/Beacon.sol";
 import { PAUFactory } from "../../lib/diamond-pau/src/PAUFactory.sol";
@@ -39,7 +35,7 @@ interface IRateLimitSetter {
  *         registered, then an actor routes a real ERC20 transfer through
  *         AdministeredAgent -> Controller -> facet -> ALMProxy -> token.
  */
-contract PAUAdministeredAgentFactory_TransferAssetIntegration is Test {
+contract PAUAdministeredAgentFactory_TransferAsset_Integration_Tests is Test {
 
     bytes32 internal constant INTEGRATION_ID = "TRANSFER_ASSET_FACET";
 
@@ -103,10 +99,10 @@ contract PAUAdministeredAgentFactory_TransferAssetIntegration is Test {
 
         (
             ,
-            IControllerLike controller,
-            IALMProxyLike proxy,
-            IRateLimitsLike rateLimits,
-            IAdministeredAgentLike agent
+            address controller,
+            address proxy,
+            address rateLimits,
+            address agent
         ) = factory.deploy(
             admin,
             integrationIds,
@@ -146,7 +142,7 @@ contract PAUAdministeredAgentFactory_TransferAssetIntegration is Test {
                 administeredAgentAdmins: new address[](0)
             });
 
-        ( , IControllerLike controller, , , IAdministeredAgentLike agent) = factory.deploy(
+        ( , address controller, , , address agent) = factory.deploy(
             admin,
             integrationIds,
             adminConfig,

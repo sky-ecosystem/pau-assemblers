@@ -3,7 +3,7 @@ pragma solidity ^0.8.34;
 
 import { Test } from "../../lib/forge-std/src/Test.sol";
 
-import { IPAUAdministeredAgentFactory } from "../../src/interfaces/PAUAdministeredAgentFactory.sol";
+import { IPAUAdministeredAgentFactory } from "../../src/interfaces/IPAUAdministeredAgentFactory.sol";
 
 /// @notice Minimal role-reader used by tests to assert role state on the real
 ///         AccessControls / ALMProxy / RateLimits contracts without pulling in
