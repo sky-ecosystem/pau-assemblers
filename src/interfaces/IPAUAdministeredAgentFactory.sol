@@ -33,13 +33,13 @@ interface IPAUAdministeredAgentFactory {
     /**
      * @notice Admin addresses to be granted the default admin role on each
      *         component of the deployed stack, in addition to the primary `admin`.
-     * @param  controllerAdmins        Extra admins for the AccessControls contract.
+     * @param  accessControlAdmins     Extra admins for the AccessControls contract.
      * @param  proxyAdmins             Extra admins for the ALMProxy contract.
      * @param  rateLimitsAdmins        Extra admins for the RateLimits contract.
      * @param  administeredAgentAdmins Extra admins for the AdministeredAgent.
      */
     struct AdminConfig {
-        address[] controllerAdmins;
+        address[] accessControlAdmins;
         address[] proxyAdmins;
         address[] rateLimitsAdmins;
         address[] administeredAgentAdmins;

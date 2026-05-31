@@ -190,7 +190,7 @@ contract PAUAdministeredAgentFactory_Deploy_Tests is PAUAdministeredAgentFactory
     function test_deploy_withFullConfig() external {
         IPAUAdministeredAgentFactory.AdminConfig memory adminConfig =
             IPAUAdministeredAgentFactory.AdminConfig({
-                controllerAdmins:        _slice(1,  2),
+                accessControlAdmins:      _slice(1,  2),
                 proxyAdmins:             _slice(10, 2),
                 rateLimitsAdmins:        _slice(20, 2),
                 administeredAgentAdmins: _slice(30, 2)
@@ -222,8 +222,8 @@ contract PAUAdministeredAgentFactory_Deploy_Tests is PAUAdministeredAgentFactory
         for (uint256 i = 0; i < adminConfig.rateLimitsAdmins.length; ++i) {
             assertTrue(d.rateLimits.hasRole(DEFAULT_ADMIN_ROLE, adminConfig.rateLimitsAdmins[i]));
         }
-        for (uint256 i = 0; i < adminConfig.controllerAdmins.length; ++i) {
-            assertTrue(d.accessControls.hasRole(DEFAULT_ADMIN_ROLE, adminConfig.controllerAdmins[i]));
+        for (uint256 i = 0; i < adminConfig.accessControlAdmins.length; ++i) {
+            assertTrue(d.accessControls.hasRole(DEFAULT_ADMIN_ROLE, adminConfig.accessControlAdmins[i]));
         }
     }
 
@@ -441,7 +441,7 @@ contract PAUAdministeredAgentFactory_Deploy_Tests is PAUAdministeredAgentFactory
 
         IPAUAdministeredAgentFactory.AdminConfig memory adminConfig =
             IPAUAdministeredAgentFactory.AdminConfig({
-                controllerAdmins:        _slice(5000, nCtrl),
+                accessControlAdmins:      _slice(5000, nCtrl),
                 proxyAdmins:             _slice(6000, nProxy),
                 rateLimitsAdmins:        _slice(7000, nRate),
                 administeredAgentAdmins: new address[](0)

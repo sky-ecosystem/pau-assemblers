@@ -80,7 +80,7 @@ contract PAUAdministeredAgentFactory_TransferAsset_Integration_Tests is Test {
 
         IPAUAdministeredAgentFactory.AdminConfig memory adminConfig =
             IPAUAdministeredAgentFactory.AdminConfig({
-                controllerAdmins:        new address[](0),
+                accessControlAdmins:     new address[](0),
                 proxyAdmins:             new address[](0),
                 rateLimitsAdmins:        new address[](0),
                 administeredAgentAdmins: new address[](0)
@@ -135,7 +135,7 @@ contract PAUAdministeredAgentFactory_TransferAsset_Integration_Tests is Test {
 
         IPAUAdministeredAgentFactory.AdminConfig memory adminConfig =
             IPAUAdministeredAgentFactory.AdminConfig({
-                controllerAdmins:        new address[](0),
+                accessControlAdmins:     new address[](0),
                 proxyAdmins:             new address[](0),
                 rateLimitsAdmins:        new address[](0),
                 administeredAgentAdmins: new address[](0)

@@ -276,7 +276,7 @@ contract PAUAdministeredAgentFactory is IPAUAdministeredAgentFactory {
         // DEFAULT_ADMIN_ROLE to `admin` plus any extras, on each component.
         _grantDefaultAdmins(d.proxy,          admin, adminConfig.proxyAdmins);
         _grantDefaultAdmins(d.rateLimits,     admin, adminConfig.rateLimitsAdmins);
-        _grantDefaultAdmins(d.accessControls, admin, adminConfig.controllerAdmins);
+        _grantDefaultAdmins(d.accessControls, admin, adminConfig.accessControlAdmins);
 
         // Admins on the AdministeredAgent.
         IAdministeredAgentLike(d.agent).addAdmin(admin);
