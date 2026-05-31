@@ -175,6 +175,7 @@ contract PAUAdministeredAgentFactory is IPAUAdministeredAgentFactory {
         //Step 5: Revoke Roles for Factory
         proxy.revokeRole(_DEFAULT_ADMIN_ROLE,      address(this));
         rateLimits.revokeRole(_DEFAULT_ADMIN_ROLE, address(this));
+        accessControls.revokeRole(_DEFAULT_ADMIN_ROLE, address(this));
         agent.removeAdmin(address(this));
 
         emit PAUAdministeredAgentFactoryDeploy(
