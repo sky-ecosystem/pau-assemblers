@@ -393,6 +393,19 @@ contract PAUAdministeredAgentFactory_Deploy_Tests is PAUAdministeredAgentFactory
         assertEq(d.accessControls.getRoleAdmin(role), roleAdmin);
     }
 
+    // Reassigning the admin of DEFAULT_ADMIN_ROLE is rejected up front (it would brick renounce).
+    function test_deploy_roleAdminConfig_reassignDefaultAdminRole() external {
+        IPAUAdministeredAgentFactory.AccessControlRoleAdminConfig[] memory cfg =
+            new IPAUAdministeredAgentFactory.AccessControlRoleAdminConfig[](1);
+        cfg[0] = IPAUAdministeredAgentFactory.AccessControlRoleAdminConfig({
+            role:      DEFAULT_ADMIN_ROLE,
+            adminRole: keccak256("CUSTOM_ROLE_ADMIN")
+        });
+
+        vm.expectRevert(IPAUAdministeredAgentFactory.CannotReassignDefaultAdminRole.selector);
+        _deployStandard(admin, _oneIntegration(), _emptyAdminConfig(), _emptyAgentConfig(), cfg);
+    }
+
     /**********************************************************************************************/
     /*** Fuzz                                                                                    ***/
     /**********************************************************************************************/

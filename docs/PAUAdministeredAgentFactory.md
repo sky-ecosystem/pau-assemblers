@@ -166,10 +166,11 @@ under a custom `ALLOCATOR_ADMIN_ROLE`).
 - **Trustless post-deploy.** The factory renounces `DEFAULT_ADMIN_ROLE` on AccessControls, ALMProxy,
   and RateLimits and removes itself as an agent admin; it retains no control over any deployed contract.
 - **One-shot and non-upgradeable.** Each call deploys a fresh, independent stack.
-- **`roleAdminConfig` ordering hazard.** Role-admin reassignments are applied while the factory still
-  holds `DEFAULT_ADMIN_ROLE` (step 5), immediately before renouncing it (step 6). Reassigning the admin
-  of `DEFAULT_ADMIN_ROLE` itself is the caller's responsibility and can interfere with the factory's own
-  renunciation — avoid unless you understand the consequence.
+- **`roleAdminConfig` guards `DEFAULT_ADMIN_ROLE`.** Role-admin reassignments are applied while the
+  factory still holds `DEFAULT_ADMIN_ROLE` (step 5), immediately before renouncing it (step 6). A
+  `roleAdminConfig` entry targeting `DEFAULT_ADMIN_ROLE` is rejected up front with
+  `CannotReassignDefaultAdminRole`, since reassigning its admin would otherwise leave the factory unable
+  to renounce its own admin and brick the deploy.
 - **Deterministic surface.** Roles are wired only as described above; no rate limits, freezer admins, or
   integrations are configured beyond the supplied inputs.
 

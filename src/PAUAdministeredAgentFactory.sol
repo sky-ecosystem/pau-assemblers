@@ -306,6 +306,10 @@ contract PAUAdministeredAgentFactory is IPAUAdministeredAgentFactory {
         internal
     {
         for (uint256 i = 0; i < roleAdminConfig.length; i++) {
+            // Reassigning the admin of DEFAULT_ADMIN_ROLE would leave the factory unable to renounce
+            // its own admin (step 6), so reject it explicitly rather than fail later with an opaque
+            // authorization revert.
+            require(roleAdminConfig[i].role != _DEFAULT_ADMIN_ROLE, CannotReassignDefaultAdminRole());
             IAccessControlsLike(accessControls).setRoleAdmin(roleAdminConfig[i].role, roleAdminConfig[i].adminRole);
         }
     }

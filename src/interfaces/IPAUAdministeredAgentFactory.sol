@@ -26,6 +26,10 @@ interface IPAUAdministeredAgentFactory {
     /// @notice Thrown when the primary `admin` passed to {deploy} is the zero address.
     error ZeroAdmin();
 
+    /// @notice Thrown when a `roleAdminConfig` entry targets `DEFAULT_ADMIN_ROLE`. Reassigning its
+    ///         admin would prevent the factory from renouncing its own admin and brick the deploy.
+    error CannotReassignDefaultAdminRole();
+
     /**********************************************************************************************/
     /*** Structs                                                                                ***/
     /**********************************************************************************************/
@@ -169,9 +173,9 @@ interface IPAUAdministeredAgentFactory {
      *           skipped entirely (the Controller reverts on an empty array), so a stack can be
      *           deployed with no integrations and configured later by an admin.
      *         - `roleAdminConfig` entries are applied while this factory still holds
-     *           DEFAULT_ADMIN_ROLE on AccessControls; reassigning the admin of DEFAULT_ADMIN_ROLE
-     *           itself is the caller's responsibility and may interfere with the factory's own
-     *           role renunciation.
+     *           DEFAULT_ADMIN_ROLE on AccessControls. Targeting `DEFAULT_ADMIN_ROLE` is rejected with
+     *           `CannotReassignDefaultAdminRole`, since reassigning its admin would prevent the
+     *           factory from renouncing its own admin.
      * @param  admin                   System-wide admin, granted admin rights on every deployed component
      *                                 (AccessControls, ALMProxy, RateLimits, AdministeredAgent). Must not
      *                                 be repeated in `adminConfig` (see {AdminConfig}).
