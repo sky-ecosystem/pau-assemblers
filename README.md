@@ -14,9 +14,9 @@ wires a standardized on-chain system in a single transaction, hands all administ
 caller-supplied admin, and renounces every role it held during setup — so the factory is trustless
 once the call returns.
 
-The first factory
-the [PAU](https://github.com/sky-ecosystem/diamond-pau) stack, giving a reviewable, deterministic path
-to deploying Prime PAUs as more primes enter the ecosystem and replacing ad-hoc manual deployments.
+The first factory builds on the [PAU](https://github.com/sky-ecosystem/diamond-pau) stack, giving a
+reviewable, deterministic path to deploying Prime PAUs as more primes enter the ecosystem and
+replacing ad-hoc manual deployments.
 
 ### Factories
 
