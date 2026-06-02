@@ -50,8 +50,9 @@ its [documentation](./docs/PAUAdministeredAgentFactory.md) for details.
 
 > **Auditor note.** Factory `src/` has no compile-time dependency on those repositories — it talks to
 > them only through inline `*Like` adapter interfaces, and the submodules are imported **only by the
-> tests**. Both are pinned to in-PR / pre-release commits (not tagged releases) and sit in the same
-> audit slot as this factory; we may need to re-pin or migrate once they ship. See the
+> tests**. They are pinned to pre-release refs — `pau-administered-agent` at the `v1.0.0-beta.0` tag and
+> `diamond-pau` at a non-release commit — and sit in the same audit slot as this factory; we may need to
+> re-pin or migrate once they ship a final release. See the
 > [dependency status note](./docs/PAUAdministeredAgentFactory.md#dependencies) for the exact refs.
 
 ## Quick Start

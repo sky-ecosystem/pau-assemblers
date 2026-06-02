@@ -303,7 +303,7 @@ contract PAUAdministeredAgentFactory_Deploy_Tests is PAUAdministeredAgentFactory
         IPAUAdministeredAgentFactory.AdministeredAgentConfig memory agentConfig = _emptyAgentConfig();
         agentConfig.actors = actors;
 
-        vm.expectRevert(abi.encodeWithSelector(IAdministeredAgent.AlreadyActor.selector, dup));
+        vm.expectRevert(IAdministeredAgent.AccountAlreadyActor.selector);
         _deploy(admin, _oneIntegration(), _emptyAdminConfig(), agentConfig);
     }
 
@@ -315,7 +315,7 @@ contract PAUAdministeredAgentFactory_Deploy_Tests is PAUAdministeredAgentFactory
         IPAUAdministeredAgentFactory.AdminConfig memory adminConfig = _emptyAdminConfig();
         adminConfig.administeredAgentAdmins = agentAdmins;
 
-        vm.expectRevert(abi.encodeWithSelector(IAdministeredAgent.AlreadyAdmin.selector, admin));
+        vm.expectRevert(IAdministeredAgent.AccountAlreadyAdmin.selector);
         _deploy(admin, _oneIntegration(), adminConfig, _emptyAgentConfig());
     }
 
@@ -328,7 +328,7 @@ contract PAUAdministeredAgentFactory_Deploy_Tests is PAUAdministeredAgentFactory
         IPAUAdministeredAgentFactory.AdministeredAgentConfig memory agentConfig = _emptyAgentConfig();
         agentConfig.grantors = grantors;
 
-        vm.expectRevert(abi.encodeWithSelector(IAdministeredAgent.AlreadyGrantor.selector, dup));
+        vm.expectRevert(IAdministeredAgent.AccountAlreadyGrantor.selector);
         _deploy(admin, _oneIntegration(), _emptyAdminConfig(), agentConfig);
     }
 

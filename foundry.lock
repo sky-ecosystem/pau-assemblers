@@ -9,6 +9,9 @@
     }
   },
   "lib/pau-administered-agent": {
-    "rev": "f0c28ece1be90313ae1c34374da2b7b8a08b8741"
+    "tag": {
+      "name": "v1.0.0-beta.0",
+      "rev": "5c267327a1abda869a5d3a76706a3de26b0d8da2"
+    }
   }
 }
