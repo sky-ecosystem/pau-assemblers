@@ -1,6 +1,6 @@
 # PAU Administered Agent Factory
 
-`PAUAdministeredAgentFactory` deploys and fully wires a Prime PAU stack plus an `AdministeredAgent`
+`DefaultPAUFactory` deploys and fully wires a Prime PAU stack plus an `AdministeredAgent`
 in a single transaction, transfers all administrative rights to a caller-supplied `admin`, and
 renounces every role it held during setup. After the call returns the factory holds **no** privileged
 role on any deployed contract.
@@ -9,13 +9,13 @@ role on any deployed contract.
 
 The factory is constructed with two underlying factories and calls into them at deploy time:
 
-| Constructor argument        | Type                            | Role                                                              |
-| --------------------------- | ------------------------------- | ---------------------------------------------------------------- |
+| Constructor argument        | Type                            | Role                                                                  |
+| --------------------------- | ------------------------------- | --------------------------------------------------------------------- |
 | `pauFactory_`               | `IPAUFactoryLike`               | Deploys AccessControls, ALMProxy(/Freezable), RateLimits, Controller. |
-| `administeredAgentFactory_` | `IAdministeredAgentFactoryLike` | Deploys the `AdministeredAgent`.                                 |
+| `administeredAgentFactory_` | `IAdministeredAgentFactoryLike` | Deploys the `AdministeredAgent`.                                      |
 
 Both must be non-zero (`ZeroPAUFactory` / `ZeroAdministeredAgentFactory`). The PAU factory points its
-deployed Controllers at a shared **Beacon**; integrations must be registered on that Beacon *before*
+deployed Controllers at a shared **Beacon**; integrations must be registered on that Beacon _before_
 they can be passed to `deploy` (see [Preconditions](#preconditions--behavior)).
 
 > **Auditor note — dependency status.** The factory has **no compile-time dependency** on the underlying
@@ -79,19 +79,19 @@ configuration.
 
 After a successful deploy:
 
-| Contract                | Role                  | Holders                                                       |
-| ----------------------- | --------------------- | ------------------------------------------------------------ |
-| AccessControls          | `DEFAULT_ADMIN_ROLE`  | `admin` + `adminConfig.accessControlAdmins`                  |
-| AccessControls          | `ALLOCATOR_ROLE`      | the AdministeredAgent                                        |
-| ALMProxy                | `DEFAULT_ADMIN_ROLE`  | `admin` + `adminConfig.proxyAdmins`                          |
-| ALMProxy (standard)     | `CONTROLLER`          | the Controller                                               |
-| ALMProxy (freezable)    | `ALLOCATOR_ROLE`      | the Controller                                               |
-| ALMProxy (freezable)    | `FREEZER_ROLE`        | `freezers`                                                   |
-| RateLimits              | `DEFAULT_ADMIN_ROLE`  | `admin` + `adminConfig.rateLimitsAdmins`                     |
-| RateLimits              | `CONTROLLER`          | the Controller                                               |
-| AdministeredAgent       | admin                 | `admin` + `adminConfig.administeredAgentAdmins`              |
-| AdministeredAgent       | actor/grantor/revoker | `administeredAgentConfig.actors` / `grantors` / `revokers`   |
-| **the factory itself**  | —                     | **nothing** (all bootstrap roles renounced)                  |
+| Contract               | Role                  | Holders                                                    |
+| ---------------------- | --------------------- | ---------------------------------------------------------- |
+| AccessControls         | `DEFAULT_ADMIN_ROLE`  | `admin` + `adminConfig.accessControlAdmins`                |
+| AccessControls         | `ALLOCATOR_ROLE`      | the AdministeredAgent                                      |
+| ALMProxy               | `DEFAULT_ADMIN_ROLE`  | `admin` + `adminConfig.proxyAdmins`                        |
+| ALMProxy (standard)    | `CONTROLLER`          | the Controller                                             |
+| ALMProxy (freezable)   | `ALLOCATOR_ROLE`      | the Controller                                             |
+| ALMProxy (freezable)   | `FREEZER_ROLE`        | `freezers`                                                 |
+| RateLimits             | `DEFAULT_ADMIN_ROLE`  | `admin` + `adminConfig.rateLimitsAdmins`                   |
+| RateLimits             | `CONTROLLER`          | the Controller                                             |
+| AdministeredAgent      | admin                 | `admin` + `adminConfig.administeredAgentAdmins`            |
+| AdministeredAgent      | actor/grantor/revoker | `administeredAgentConfig.actors` / `grantors` / `revokers` |
+| **the factory itself** | —                     | **nothing** (all bootstrap roles renounced)                |
 
 > **Note.** The Controller has no roles of its own — admin actions on it are authorized against
 > `DEFAULT_ADMIN_ROLE` on AccessControls. So the `accessControlAdmins` (which hold `DEFAULT_ADMIN_ROLE`
@@ -132,11 +132,11 @@ Additional admins granted **in addition to** the system-wide `admin`:
 
 ### `AdministeredAgentConfig`
 
-| Field      | Meaning                                                                         |
-| ---------- | ------------------------------------------------------------------------------- |
-| `actors`   | Granted the actor role (may execute `call` / `batchCall` / `sendValue`).        |
-| `grantors` | May add actors on the agent.                                                    |
-| `revokers` | May remove actors on the agent.                                                 |
+| Field      | Meaning                                                                  |
+| ---------- | ------------------------------------------------------------------------ |
+| `actors`   | Granted the actor role (may execute `call` / `batchCall` / `sendValue`). |
+| `grantors` | May add actors on the agent.                                             |
+| `revokers` | May remove actors on the agent.                                          |
 
 ### `AccessControlRoleAdminConfig[]`
 
@@ -151,15 +151,15 @@ under a custom `ALLOCATOR_ADMIN_ROLE`).
 - **Empty `integrationIds` is supported** — the `updateIntegrations` call is skipped (the Controller
   reverts on an empty array), so a stack can be deployed bare and configured later by an admin.
 - **Duplicate / overlapping entries behave differently per component.**
-  - On the **AdministeredAgent**, re-adding an account reverts the whole deploy — this acts as a
-    built-in guard against duplicate or overlapping agent entries. Duplicate `actors`, `grantors`,
-    `revokers`, or `administeredAgentAdmins` revert with `AlreadyActor` / `AlreadyGrantor` /
-    `AlreadyRevoker` / `AlreadyAdmin` respectively, as does listing `admin` again inside
-    `administeredAgentAdmins` (it is already the agent admin).
-  - On **AccessControls / ALMProxy / RateLimits**, and for the `freezers`, roles are granted through
-    OpenZeppelin `grantRole`, which is **idempotent**: re-granting an already-held role is a silent
-    no-op. Duplicates and `admin`-overlaps in `accessControlAdmins` / `proxyAdmins` /
-    `rateLimitsAdmins` / `freezers` are therefore harmless (no revert), not guarded.
+    - On the **AdministeredAgent**, re-adding an account reverts the whole deploy — this acts as a
+      built-in guard against duplicate or overlapping agent entries. Duplicate `actors`, `grantors`,
+      `revokers`, or `administeredAgentAdmins` revert with `AlreadyActor` / `AlreadyGrantor` /
+      `AlreadyRevoker` / `AlreadyAdmin` respectively, as does listing `admin` again inside
+      `administeredAgentAdmins` (it is already the agent admin).
+    - On **AccessControls / ALMProxy / RateLimits**, and for the `freezers`, roles are granted through
+      OpenZeppelin `grantRole`, which is **idempotent**: re-granting an already-held role is a silent
+      no-op. Duplicates and `admin`-overlaps in `accessControlAdmins` / `proxyAdmins` /
+      `rateLimitsAdmins` / `freezers` are therefore harmless (no revert), not guarded.
 
 ## Security & trust
 
