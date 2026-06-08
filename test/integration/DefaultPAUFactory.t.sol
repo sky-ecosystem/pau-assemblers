@@ -92,9 +92,13 @@ contract DefaultPAUFactory_Integration_Tests is Test {
 
     address internal constant PAU_FACTORY                = 0x69A5d548830AC2A4Ba90A44a2C75BDA71f97fc66;
     address internal constant ADMINISTERED_AGENT_FACTORY = 0x2968c3b5478cF93B70aB1e24255d4EDBBd27a089;
+    address internal constant AAVE_FACET                 = 0x8CE890A96a193ff2DD4B2eA3C682326F655f6b62;
+    address internal constant TRANSFER_ASSET_FACET       = 0x4DA7608C331b8f135df5b985018933780eCd089D;
 
-    bytes32 internal constant DEFAULT_ADMIN_ROLE = 0x00;
-    bytes32 internal constant ALLOCATOR_ROLE     = keccak256("ALLOCATOR_ROLE");
+    bytes32 internal constant DEFAULT_ADMIN_ROLE            = 0x00;
+    bytes32 internal constant ALLOCATOR_ROLE                = keccak256("ALLOCATOR_ROLE");
+    bytes32 internal constant AAVE_INTEGRATION_ID           = "AAVE_FACET";
+    bytes32 internal constant TRANSFER_ASSET_INTEGRATION_ID = "TRANSFER_ASSET_FACET";
 
     DefaultPAUFactory internal factory;
 
@@ -104,34 +108,62 @@ contract DefaultPAUFactory_Integration_Tests is Test {
         factory = new DefaultPAUFactory(PAU_FACTORY, ADMINISTERED_AGENT_FACTORY);
     }
 
-    function test_deploy_standard() external {
-        address[] memory admins = new address[](1);
-        admins[0] = makeAddr("admin");
+    function test_deploy() external {
+        address admin = makeAddr("admin");
+
+        bytes32[] memory integrationIds = new bytes32[](2);
+        integrationIds[0] = AAVE_INTEGRATION_ID;
+        integrationIds[1] = TRANSFER_ASSET_INTEGRATION_ID;
 
         IDefaultPAUFactory.AdminConfig memory adminConfig = IDefaultPAUFactory.AdminConfig({
-            accessControlAdmins: admins,
-            proxyAdmins:         admins,
-            rateLimitsAdmins:    admins
+            accessControlAdmins: new address[](2),
+            proxyAdmins:         new address[](2),
+            rateLimitsAdmins:    new address[](2)
         });
 
-        address[] memory allocators = new address[](3);
-        allocators[0] = makeAddr("allocator1");
-        allocators[1] = makeAddr("allocator2");
-        allocators[2] = makeAddr("allocator3");
+        adminConfig.accessControlAdmins[0] = admin;
+        adminConfig.accessControlAdmins[1] = makeAddr("accessControlAdmin");
+        adminConfig.proxyAdmins[0]         = admin;
+        adminConfig.proxyAdmins[1]         = makeAddr("proxyAdmin");
+        adminConfig.rateLimitsAdmins[0]    = admin;
+        adminConfig.rateLimitsAdmins[1]    = makeAddr("rateLimitsAdmin");
 
-        address[] memory freezers = new address[](2);
-        freezers[0] = makeAddr("freezer1");
-        freezers[1] = makeAddr("freezer2");
+        IDefaultPAUFactory.AdministeredAgentConfig[] memory administeredAgentConfigs = new IDefaultPAUFactory.AdministeredAgentConfig[](2);
 
-        IDefaultPAUFactory.AdministeredAgentConfig memory administeredAgentConfig = IDefaultPAUFactory.AdministeredAgentConfig({
-            admins:   admins,
-            actors:   allocators,
-            grantors: new address[](0),
-            revokers: freezers
+        administeredAgentConfigs[0] = IDefaultPAUFactory.AdministeredAgentConfig({
+            admins:   new address[](2),
+            actors:   new address[](3),
+            grantors: new address[](2),
+            revokers: new address[](2)
         });
 
-        IDefaultPAUFactory.AdministeredAgentConfig[] memory administeredAgentConfigs = new IDefaultPAUFactory.AdministeredAgentConfig[](1);
-        administeredAgentConfigs[0] = administeredAgentConfig;
+        administeredAgentConfigs[0].admins[0] = admin;
+        administeredAgentConfigs[0].admins[1] = makeAddr("firstAdministeredAgentAdmin");
+
+        administeredAgentConfigs[0].actors[0] = makeAddr("allocator1");
+        administeredAgentConfigs[0].actors[1] = makeAddr("allocator2");
+        administeredAgentConfigs[0].actors[2] = makeAddr("allocator3");
+
+        administeredAgentConfigs[0].grantors[0] = makeAddr("granter1");
+        administeredAgentConfigs[0].grantors[1] = makeAddr("granter2");
+
+        administeredAgentConfigs[0].revokers[0] = makeAddr("revoker1");
+        administeredAgentConfigs[0].revokers[1] = makeAddr("revoker2");
+
+        administeredAgentConfigs[1] = IDefaultPAUFactory.AdministeredAgentConfig({
+            admins:   new address[](1),
+            actors:   new address[](1),
+            grantors: new address[](1),
+            revokers: new address[](1)
+        });
+
+        administeredAgentConfigs[1].admins[0] = admin;
+
+        administeredAgentConfigs[1].actors[0] = makeAddr("allocator4");
+
+        administeredAgentConfigs[1].grantors[0] = makeAddr("granter3");
+
+        administeredAgentConfigs[1].revokers[0] = makeAddr("revoker3");
 
         (
             address          proxy,
@@ -139,37 +171,53 @@ contract DefaultPAUFactory_Integration_Tests is Test {
             address          accessControls,
             address          rateLimits,
             address[] memory allocatorAgents
-        ) = factory.deploy(new bytes32[](0), adminConfig, administeredAgentConfigs);
+        ) = factory.deploy(integrationIds, adminConfig, administeredAgentConfigs);
 
         // Assert allocatorAgents state.
-        assertEq(allocatorAgents.length, 1);
+        assertEq(allocatorAgents.length, 2);
 
-        assertEq(IAdministeredAgentLike(allocatorAgents[0]).actorCount(), 3);
-        assertEq(IAdministeredAgentLike(allocatorAgents[0]).adminCount(), 1);
-        assertEq(IAdministeredAgentLike(allocatorAgents[0]).grantorCount(), 0);
+        assertEq(IAdministeredAgentLike(allocatorAgents[0]).actorCount(),   3);
+        assertEq(IAdministeredAgentLike(allocatorAgents[0]).adminCount(),   2);
+        assertEq(IAdministeredAgentLike(allocatorAgents[0]).grantorCount(), 2);
         assertEq(IAdministeredAgentLike(allocatorAgents[0]).revokerCount(), 2);
 
-        assertEq(IAdministeredAgentLike(allocatorAgents[0]).getIsActor(allocators[0]), true);
-        assertEq(IAdministeredAgentLike(allocatorAgents[0]).getIsActor(allocators[1]), true);
-        assertEq(IAdministeredAgentLike(allocatorAgents[0]).getIsActor(allocators[2]), true);
-        assertEq(IAdministeredAgentLike(allocatorAgents[0]).getIsAdmin(admins[0]),     true);
-        assertEq(IAdministeredAgentLike(allocatorAgents[0]).getIsRevoker(freezers[0]), true);
-        assertEq(IAdministeredAgentLike(allocatorAgents[0]).getIsRevoker(freezers[1]), true);
+        assertEq(IAdministeredAgentLike(allocatorAgents[0]).getIsActor(administeredAgentConfigs[0].actors[0]),     true);
+        assertEq(IAdministeredAgentLike(allocatorAgents[0]).getIsActor(administeredAgentConfigs[0].actors[1]),     true);
+        assertEq(IAdministeredAgentLike(allocatorAgents[0]).getIsActor(administeredAgentConfigs[0].actors[2]),     true);
+        assertEq(IAdministeredAgentLike(allocatorAgents[0]).getIsAdmin(administeredAgentConfigs[0].admins[0]),     true);
+        assertEq(IAdministeredAgentLike(allocatorAgents[0]).getIsAdmin(administeredAgentConfigs[0].admins[1]),     true);
+        assertEq(IAdministeredAgentLike(allocatorAgents[0]).getIsGrantor(administeredAgentConfigs[0].grantors[0]), true);
+        assertEq(IAdministeredAgentLike(allocatorAgents[0]).getIsGrantor(administeredAgentConfigs[0].grantors[1]), true);
+        assertEq(IAdministeredAgentLike(allocatorAgents[0]).getIsRevoker(administeredAgentConfigs[0].revokers[0]), true);
+        assertEq(IAdministeredAgentLike(allocatorAgents[0]).getIsRevoker(administeredAgentConfigs[0].revokers[1]), true);
+
+        assertEq(IAdministeredAgentLike(allocatorAgents[1]).actorCount(),   1);
+        assertEq(IAdministeredAgentLike(allocatorAgents[1]).adminCount(),   1);
+        assertEq(IAdministeredAgentLike(allocatorAgents[1]).grantorCount(), 1);
+        assertEq(IAdministeredAgentLike(allocatorAgents[1]).revokerCount(), 1);
+
+        assertEq(IAdministeredAgentLike(allocatorAgents[1]).getIsActor(administeredAgentConfigs[1].actors[0]),     true);
+        assertEq(IAdministeredAgentLike(allocatorAgents[1]).getIsAdmin(administeredAgentConfigs[1].admins[0]),     true);
+        assertEq(IAdministeredAgentLike(allocatorAgents[1]).getIsGrantor(administeredAgentConfigs[1].grantors[0]), true);
+        assertEq(IAdministeredAgentLike(allocatorAgents[1]).getIsRevoker(administeredAgentConfigs[1].revokers[0]), true);
 
         // Assert AccessControls state.
-        assertEq(IAccessControlLike(accessControls).getRoleMemberCount(DEFAULT_ADMIN_ROLE), 1);
-        assertEq(IAccessControlLike(accessControls).getRoleMemberCount(ALLOCATOR_ROLE),     1);
+        assertEq(IAccessControlLike(accessControls).getRoleMemberCount(DEFAULT_ADMIN_ROLE), 2);
+        assertEq(IAccessControlLike(accessControls).getRoleMemberCount(ALLOCATOR_ROLE),     2);
 
-        assertEq(IAccessControlLike(accessControls).hasRole(DEFAULT_ADMIN_ROLE, admins[0]),          true);
-        assertEq(IAccessControlLike(accessControls).hasRole(DEFAULT_ADMIN_ROLE, address(factory)),   false);
-        assertEq(IAccessControlLike(accessControls).hasRole(ALLOCATOR_ROLE,     allocatorAgents[0]), true);
+        assertEq(IAccessControlLike(accessControls).hasRole(DEFAULT_ADMIN_ROLE, adminConfig.accessControlAdmins[0]), true);
+        assertEq(IAccessControlLike(accessControls).hasRole(DEFAULT_ADMIN_ROLE, adminConfig.accessControlAdmins[1]), true);
+        assertEq(IAccessControlLike(accessControls).hasRole(DEFAULT_ADMIN_ROLE, address(factory)),                   false);
+        assertEq(IAccessControlLike(accessControls).hasRole(ALLOCATOR_ROLE,     allocatorAgents[0]),                 true);
+        assertEq(IAccessControlLike(accessControls).hasRole(ALLOCATOR_ROLE,     allocatorAgents[1]),                 true);
 
         assertEq(IAccessControlLike(accessControls).getRoleAdmin(ALLOCATOR_ROLE), DEFAULT_ADMIN_ROLE);
 
         // Assert ALMProxy state.
-        assertEq(IAccessControlLike(proxy).hasRole(DEFAULT_ADMIN_ROLE,                admins[0]),        true);
-        assertEq(IAccessControlLike(proxy).hasRole(DEFAULT_ADMIN_ROLE,                address(factory)), false);
-        assertEq(IAccessControlLike(proxy).hasRole(IALMProxyLike(proxy).CONTROLLER(), controller),       true);
+        assertEq(IAccessControlLike(proxy).hasRole(DEFAULT_ADMIN_ROLE,                adminConfig.proxyAdmins[0]), true);
+        assertEq(IAccessControlLike(proxy).hasRole(DEFAULT_ADMIN_ROLE,                adminConfig.proxyAdmins[1]), true);
+        assertEq(IAccessControlLike(proxy).hasRole(DEFAULT_ADMIN_ROLE,                address(factory)),           false);
+        assertEq(IAccessControlLike(proxy).hasRole(IALMProxyLike(proxy).CONTROLLER(), controller),                 true);
 
         // Assert Controller state.
         assertEq(IControllerLike(controller).accessControls(), accessControls);
@@ -177,12 +225,22 @@ contract DefaultPAUFactory_Integration_Tests is Test {
         assertEq(IControllerLike(controller).proxy(),          proxy);
         assertEq(IControllerLike(controller).rateLimits(),     rateLimits);
 
-        assertEq(IControllerLike(controller).integrations().length, 0);
+        assertEq(IControllerLike(controller).integrations().length, 2);
+
+        assertEq(IControllerLike(controller).integrations()[0].id, AAVE_INTEGRATION_ID);
+        assertEq(IControllerLike(controller).integrations()[1].id, TRANSFER_ASSET_INTEGRATION_ID);
+
+        assertEq(IControllerLike(controller).integrations()[0].config.facet, AAVE_FACET);
+        assertEq(IControllerLike(controller).integrations()[1].config.facet, TRANSFER_ASSET_FACET);
+
+        assertEq(IControllerLike(controller).integrations()[0].config.wires.length, 7);
+        assertEq(IControllerLike(controller).integrations()[1].config.wires.length, 3);
 
         // Assert RateLimits state.
-        assertEq(IAccessControlLike(rateLimits).hasRole(DEFAULT_ADMIN_ROLE,                       admins[0]),        true);
-        assertEq(IAccessControlLike(rateLimits).hasRole(DEFAULT_ADMIN_ROLE,                       address(factory)), false);
-        assertEq(IAccessControlLike(rateLimits).hasRole(IRateLimitsLike(rateLimits).CONTROLLER(), controller),       true);
+        assertEq(IAccessControlLike(rateLimits).hasRole(DEFAULT_ADMIN_ROLE,                       adminConfig.rateLimitsAdmins[0]), true);
+        assertEq(IAccessControlLike(rateLimits).hasRole(DEFAULT_ADMIN_ROLE,                       adminConfig.rateLimitsAdmins[1]), true);
+        assertEq(IAccessControlLike(rateLimits).hasRole(DEFAULT_ADMIN_ROLE,                       address(factory)),                false);
+        assertEq(IAccessControlLike(rateLimits).hasRole(IRateLimitsLike(rateLimits).CONTROLLER(), controller),                      true);
     }
 
 }

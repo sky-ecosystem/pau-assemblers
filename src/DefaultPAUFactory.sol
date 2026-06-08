@@ -5,7 +5,7 @@ import { IDefaultPAUFactory } from "./interfaces/IDefaultPAUFactory.sol";
 
 interface IPAUFactoryLike {
 
-    function deployAccessControls(address admin) external returns(address accessControls);
+    function deployAccessControls(address admin) external returns (address accessControls);
 
     function deployALMProxy(address admin) external returns (address almProxy);
 
@@ -19,7 +19,7 @@ interface IPAUFactoryLike {
 
 interface IAdministeredAgentFactoryLike {
 
-    function deploy(address admin) external returns(address);
+    function deploy(address admin) external returns (address);
 
 }
 
@@ -117,12 +117,16 @@ contract DefaultPAUFactory is IDefaultPAUFactory {
             address[] memory allocatorAgents
         )
     {
+        // Step 1: Deploy all PAU contracts.
+
         accessControls = IPAUFactoryLike(pauFactory).deployAccessControls(address(this));
         proxy          = IPAUFactoryLike(pauFactory).deployALMProxy(address(this));
         rateLimits     = IPAUFactoryLike(pauFactory).deployRateLimits(address(this));
 
         controller =
             IPAUFactoryLike(pauFactory).deployController(accessControls, proxy, rateLimits);
+
+        // Step 2: Deploy and configure all allocator agents.
 
         allocatorAgents = new address[](allocatorAgentConfigs.length);
 
@@ -135,11 +139,17 @@ contract DefaultPAUFactory is IDefaultPAUFactory {
             IAdministeredAgentLike(allocatorAgents[i]).removeAdmin(address(this));
         }
 
+        // Step 3: Configure all roles in PAU system.
+
         _grantRoles(accessControls, controller, proxy, rateLimits, adminConfig, allocatorAgents);
+
+        // Step 4: Set up all facets and wirings in controller.
 
         if (integrationIds.length > 0) {
             IControllerLike(controller).updateIntegrations(integrationIds);
         }
+
+        // Step 5: Revoke all roles from factory.
 
         IAccessControlLike(accessControls).revokeRole(_DEFAULT_ADMIN_ROLE, address(this));
         IAccessControlLike(proxy).revokeRole(_DEFAULT_ADMIN_ROLE,          address(this));
