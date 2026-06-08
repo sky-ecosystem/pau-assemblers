@@ -1,17 +1,8 @@
 {
-  "lib/diamond-pau": {
-    "rev": "222798b81c95c0ef5b21b4f19884d68e14fb605e"
-  },
   "lib/forge-std": {
     "tag": {
       "name": "v1.16.1",
       "rev": "620536fa5277db4e3fd46772d5cbc1ea0696fb43"
-    }
-  },
-  "lib/pau-administered-agent": {
-    "tag": {
-      "name": "v1.0.0-beta.0",
-      "rev": "5c267327a1abda869a5d3a76706a3de26b0d8da2"
     }
   }
 }

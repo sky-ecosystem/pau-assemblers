@@ -35,16 +35,14 @@ interface IDefaultPAUFactory {
 
     /**
      * @notice Admins to be granted admin rights on each component of the deployed stack.
-     * @param  accessControlAdmins     Admins for the AccessControls contract.
-     * @param  proxyAdmins             Admins for the ALMProxy contract.
-     * @param  rateLimitsAdmins        Admins for the RateLimits contract.
-     * @param  administeredAgentAdmins Admins for the AdministeredAgent.
+     * @param  accessControlAdmins Admins for the AccessControls contract.
+     * @param  proxyAdmins         Admins for the ALMProxy contract.
+     * @param  rateLimitsAdmins    Admins for the RateLimits contract.
      */
     struct AdminConfig {
         address[] accessControlAdmins;
         address[] proxyAdmins;
         address[] rateLimitsAdmins;
-        address[] administeredAgentAdmins;
     }
 
     /**
@@ -114,7 +112,7 @@ interface IDefaultPAUFactory {
     /**********************************************************************************************/
 
     /**
-     * @notice Deploys and configured a full PAU stack (ALMProxy, RateLimits, Controller) with
+     * @notice Deploys and configures a full PAU stack (ALMProxy, RateLimits, Controller) with
      *         allocators as AdministeredAgent contracts, in a single transaction. Wires up roles,
      *         syncs integrations on the Controller, configures each AdministeredAgent with the
      *         respective supplied admins/actors/grantors/revokers.

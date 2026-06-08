@@ -72,6 +72,9 @@ contract DefaultPAUFactory is IDefaultPAUFactory {
 
     bytes32 internal constant _ALLOCATOR_ROLE = keccak256("ALLOCATOR_ROLE");
 
+    /// @inheritdoc IDefaultPAUFactory
+    string public constant override VERSION = "1.0.0";
+
     /**********************************************************************************************/
     /*** Declarations                                                                           ***/
     /**********************************************************************************************/
@@ -82,9 +85,6 @@ contract DefaultPAUFactory is IDefaultPAUFactory {
     /// @inheritdoc IDefaultPAUFactory
     address public immutable administeredAgentFactory;
 
-    /// @inheritdoc IDefaultPAUFactory
-    string public constant override VERSION = "1.0.0";
-
     /**********************************************************************************************/
     /*** Constructor                                                                            ***/
     /**********************************************************************************************/
@@ -93,7 +93,7 @@ contract DefaultPAUFactory is IDefaultPAUFactory {
         require(pauFactory_ != address(0),               ZeroPAUFactory());
         require(administeredAgentFactory_ != address(0), ZeroAdministeredAgentFactory());
 
-        pauFactory = pauFactory_;
+        pauFactory               = pauFactory_;
         administeredAgentFactory = administeredAgentFactory_;
     }
 
@@ -121,7 +121,10 @@ contract DefaultPAUFactory is IDefaultPAUFactory {
         proxy          = IPAUFactoryLike(pauFactory).deployALMProxy(address(this));
         rateLimits     = IPAUFactoryLike(pauFactory).deployRateLimits(address(this));
 
-        controller = IPAUFactoryLike(pauFactory).deployController(accessControls, proxy, rateLimits);
+        controller =
+            IPAUFactoryLike(pauFactory).deployController(accessControls, proxy, rateLimits);
+
+        allocatorAgents = new address[](allocatorAgentConfigs.length);
 
         for (uint256 i = 0; i < allocatorAgentConfigs.length; i++) {
             allocatorAgents[i] =
@@ -159,6 +162,8 @@ contract DefaultPAUFactory is IDefaultPAUFactory {
     /**********************************************************************************************/
 
     function _configureAgent(address agent, AdministeredAgentConfig memory config) internal {
+        require(config.admins.length > 0, NoAdmins());
+
         for (uint256 i = 0; i < config.admins.length; ++i) {
             IAdministeredAgentLike(agent).addAdmin(config.admins[i]);
         }
@@ -177,12 +182,12 @@ contract DefaultPAUFactory is IDefaultPAUFactory {
     }
 
     function _grantRoles(
-        address accessControls,
-        address controller,
-        address proxy,
-        address rateLimits,
+        address            accessControls,
+        address            controller,
+        address            proxy,
+        address            rateLimits,
         AdminConfig memory adminConfig,
-        address[] memory allocators
+        address[]   memory allocators
     )
         internal
     {
@@ -190,12 +195,12 @@ contract DefaultPAUFactory is IDefaultPAUFactory {
         IAccessControlLike(proxy).grantRole(IALMProxyLike(proxy).CONTROLLER(), controller);
 
         _grantDefaultAdmins(rateLimits, adminConfig.rateLimitsAdmins);
-        IAccessControlLike(rateLimits).grantRole(IRateLimitsLike(proxy).CONTROLLER(), controller);
+        IAccessControlLike(rateLimits).grantRole(IRateLimitsLike(rateLimits).CONTROLLER(), controller);
 
         _grantDefaultAdmins(accessControls, adminConfig.accessControlAdmins);
 
         for (uint256 i = 0; i < allocators.length; ++i) {
-            IAccessControlLike(proxy).grantRole(_ALLOCATOR_ROLE, allocators[i]);
+            IAccessControlLike(accessControls).grantRole(_ALLOCATOR_ROLE, allocators[i]);
         }
     }
 
