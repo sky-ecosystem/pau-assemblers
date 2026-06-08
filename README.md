@@ -17,14 +17,14 @@ The first factory builds on the [PAU](https://github.com/sky-ecosystem/diamond-p
 
 | Contract            | Description                                                                                                       |
 | ------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `DefaultPAUFactory` | Deploys a full PAU stack (AccessControls, ALMProxy, RateLimits, Controller) and one or more `AdministeredAgent`s. |
+| `DefaultPAUAssembler` | Deploys a full PAU stack (AccessControls, ALMProxy, RateLimits, Controller) and one or more `AdministeredAgent`s. |
 
 ## Documentation
 
 | Document                                                           | Description                                                             |
 | ------------------------------------------------------------------ | ----------------------------------------------------------------------- |
-| [Default PAU Factory](./docs/DefaultPAUFactory/README.md)          | Deploy flow, role/permission matrix, configuration, and security notes. |
-| [Sky Core Review Checklist](./docs/DefaultPAUFactory/CHECKLIST.md) | Reviewer checklist for validating deploy arguments before sign-off.     |
+| [Default PAU Assembler](./docs/DefaultPAUAssembler/README.md)          | Deploy flow, role/permission matrix, configuration, and security notes. |
+| [Sky Core Review Checklist](./docs/DefaultPAUAssembler/CHECKLIST.md) | Reviewer checklist for validating deploy arguments before sign-off.     |
 
 ## Design
 
@@ -35,7 +35,7 @@ Every factory in this repository follows the same model:
 - **Trustless after deploy** — the factory renounces every role it held during setup, retaining no control over the deployed contracts.
 - **Deterministic surface** — only the roles and configuration described by the inputs are applied, keeping each deployment easy to review.
 
-Per-factory mechanics — deploy flow, resulting role layout, and configuration — live under [`docs/`](./docs). The first, `DefaultPAUFactory`, builds on the [`diamond-pau`](https://github.com/sky-ecosystem/diamond-pau) PAU factory and the [`pau-administered-agent`](https://github.com/sky-ecosystem/pau-administered-agent) agent factory; see its [documentation](./docs/DefaultPAUFactory/README.md) for details.
+Per-factory mechanics — deploy flow, resulting role layout, and configuration — live under [`docs/`](./docs). The first, `DefaultPAUAssembler`, builds on the [`diamond-pau`](https://github.com/sky-ecosystem/diamond-pau) PAU factory and the [`pau-administered-agent`](https://github.com/sky-ecosystem/pau-administered-agent) agent factory; see its [documentation](./docs/DefaultPAUAssembler/README.md) for details.
 
 > **Auditor note.** Factory `src/` has no compile-time dependency on those repositories — it interfaces with them only through inline `*Like` adapter interfaces. Integration tests fork the target chain and call canonical on-chain `PAUFactory` and `AdministeredAgentFactory` deployments, which avoids pulling those repositories in as submodules.
 

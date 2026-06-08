@@ -1,12 +1,12 @@
-# Default PAU Factory
+# Default PAU Assembler
 
-`DefaultPAUFactory` deploys and fully wires a Prime PAU stack plus one or more `AdministeredAgent` allocators in a single transaction, transfers administrative rights to caller-supplied admins, and renounces every role it held during setup. After the call returns the factory holds **no** privileged role on any deployed contract.
+`DefaultPAUAssembler` deploys and fully wires a Prime PAU stack plus one or more `AdministeredAgent` allocators in a single transaction, transfers administrative rights to caller-supplied admins, and renounces every role it held during setup. After the call returns the assembler holds **no** privileged role on any deployed contract.
 
 Implementation version: `1.0.0` (`VERSION`).
 
 ## Dependencies
 
-The factory is constructed with two underlying factories and calls into them at deploy time:
+The assembler is constructed with two underlying factories and calls into them at deploy time:
 
 | Constructor argument        | Type                            | Role                                                      |
 | --------------------------- | ------------------------------- | --------------------------------------------------------- |
@@ -15,7 +15,7 @@ The factory is constructed with two underlying factories and calls into them at 
 
 Both must be non-zero (`ZeroPAUFactory` / `ZeroAdministeredAgentFactory`). The PAU factory points its deployed Controllers at a shared **Beacon**; integrations must be registered on that Beacon _before_ they can be passed to `deploy` (see [Preconditions](#preconditions--behavior)).
 
-> **Auditor note — dependency status.** The factory has **no compile-time dependency** on the underlying contracts: `src/` interacts with them solely through the inline `*Like` adapter interfaces, so the production bytecode imports neither repository. Integration tests fork the target chain and call canonical on-chain `PAUFactory` and `AdministeredAgentFactory` deployments, which avoids pulling those repositories in as submodules.
+> **Auditor note — dependency status.** The assembler has **no compile-time dependency** on the underlying contracts: `src/` interacts with them solely through the inline `*Like` adapter interfaces, so the production bytecode imports neither repository. Integration tests fork the target chain and call canonical on-chain `PAUFactory` and `AdministeredAgentFactory` deployments, which avoids pulling those repositories in as submodules.
 
 ## Entry point
 
@@ -39,7 +39,7 @@ There is a single deploy path. It always wires a standard `ALMProxy` (via `deplo
 
 ## Runtime model
 
-The factory separates **who may administer the stack** from **who may drive allocator actions**:
+The assembler separates **who may administer the stack** from **who may drive allocator actions**:
 
 | Layer           | Who                                            | Role on AccessControls               | How they act                                                                           |
 | --------------- | ---------------------------------------------- | ------------------------------------ | -------------------------------------------------------------------------------------- |
@@ -59,15 +59,15 @@ actor EOA
         → external protocol / token
 ```
 
-Rate limits, proxy funding, and other runtime policy are **not** configured by the factory — admins set those after deploy (see [Post-deploy operations](#post-deploy-operations)).
+Rate limits, proxy funding, and other runtime policy are **not** configured by the assembler — admins set those after deploy (see [Post-deploy operations](#post-deploy-operations)).
 
 ## Deploy flow
 
-1. **Deploy the PAU stack** — AccessControls, ALMProxy, RateLimits, and Controller (all administered by the factory initially).
-2. **Deploy and configure allocators** — for each `allocatorAgentConfigs` entry, deploy an `AdministeredAgent` (with the factory as its constructor admin), then in order: add `admins`, `actors`, `grantors`, and `revokers`; finally remove the factory as an agent admin.
+1. **Deploy the PAU stack** — AccessControls, ALMProxy, RateLimits, and Controller (all administered by the assembler initially).
+2. **Deploy and configure allocators** — for each `allocatorAgentConfigs` entry, deploy an `AdministeredAgent` (with the assembler as its constructor admin), then in order: add `admins`, `actors`, `grantors`, and `revokers`; finally remove the assembler as an agent admin.
 3. **Wire roles** — grant `DEFAULT_ADMIN_ROLE` on ALMProxy, RateLimits, and AccessControls from `adminConfig`; grant the Controller `CONTROLLER` on the proxy and RateLimits; grant each deployed agent `ALLOCATOR_ROLE` on AccessControls.
 4. **Register integrations** — `Controller.updateIntegrations(integrationIds)`, **skipped** when the list is empty.
-5. **Renounce** — the factory revokes its own `DEFAULT_ADMIN_ROLE` on AccessControls, ALMProxy, and RateLimits.
+5. **Renounce** — the assembler revokes its own `DEFAULT_ADMIN_ROLE` on AccessControls, ALMProxy, and RateLimits.
 
 A `Deployment` event is emitted with every deployed address and the full configuration.
 
@@ -85,14 +85,14 @@ After a successful deploy:
 | RateLimits        | `CONTROLLER`          | the Controller                                         |
 | AdministeredAgent | admin                 | per-agent `allocatorAgentConfigs[i].admins`            |
 | AdministeredAgent | actor/grantor/revoker | per-agent `actors` / `grantors` / `revokers`           |
-| **the factory**   | —                     | **nothing** (all bootstrap roles renounced)            |
+| **the assembler** | —                     | **nothing** (all bootstrap roles renounced)            |
 
 > **Note.** The Controller has no roles of its own — admin actions on it are authorized against `DEFAULT_ADMIN_ROLE` on AccessControls. Holders of `accessControlAdmins` therefore also effectively govern the Controller.
 
-Post-deploy invariants checked by `DefaultPAUFactory.t.sol`:
+Post-deploy invariants checked by `DefaultPAUAssembler.t.sol`:
 
-- The factory holds `DEFAULT_ADMIN_ROLE` on AccessControls, ALMProxy, and RateLimits — **false**.
-- The factory is an admin on any deployed agent — **false** (removed during step 2).
+- The assembler holds `DEFAULT_ADMIN_ROLE` on AccessControls, ALMProxy, and RateLimits — **false**.
+- The assembler is an admin on any deployed agent — **false** (removed during step 2).
 - `ALLOCATOR_ROLE` on AccessControls is administered by `DEFAULT_ADMIN_ROLE` (OpenZeppelin default).
 - The Controller's `beacon`, `proxy`, `rateLimits`, and `accessControls` reference the contracts deployed in the same call; its `beacon` matches the underlying `PAUFactory`'s beacon.
 
@@ -142,7 +142,7 @@ The same address may appear in `admins` and in `actors` (or across `AdminConfig`
 
 ## Security & trust
 
-- **Trustless post-deploy.** The factory revokes `DEFAULT_ADMIN_ROLE` on AccessControls, ALMProxy, and RateLimits and removes itself as an admin on every deployed agent; it retains no control over any deployed contract.
+- **Trustless post-deploy.** The assembler revokes `DEFAULT_ADMIN_ROLE` on AccessControls, ALMProxy, and RateLimits and removes itself as an admin on every deployed agent; it retains no control over any deployed contract.
 - **One-shot and non-upgradeable.** Each call deploys a fresh, independent stack.
 - **Deterministic surface.** Roles are wired only as described above; no rate limits, proxy balances, or role-admin overrides are configured beyond the supplied inputs. `ALLOCATOR_ROLE` remains administered by `DEFAULT_ADMIN_ROLE` on AccessControls (OpenZeppelin default).
 

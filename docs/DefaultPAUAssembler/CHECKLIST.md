@@ -1,10 +1,10 @@
-# Sky Core Review Checklist — `DefaultPAUFactory`
+# Sky Core Review Checklist — `DefaultPAUAssembler`
 
 **Version:** 0.2.0 (draft) · **Last edited:** 2026-06-08
 
-A reviewer checklist for validating a `DefaultPAUFactory` deployment and the arguments passed to `deploy`, before signing off on a Prime PAU deployment.
+A reviewer checklist for validating a `DefaultPAUAssembler` deployment and the arguments passed to `deploy`, before signing off on a Prime PAU deployment.
 
-Modeled on the [Sky PE checklists](https://github.com/sky-ecosystem/pe-checklists). See the [factory documentation](./README.md) for the full deploy flow and resulting permission layout, and the [diamond-pau-deploy](https://github.com/sky-ecosystem/diamond-pau-deploy) repo for the underlying PAU stack deployment.
+Modeled on the [Sky PE checklists](https://github.com/sky-ecosystem/pe-checklists). See the [assembler documentation](./README.md) for the full deploy flow and resulting permission layout, and the [diamond-pau-deploy](https://github.com/sky-ecosystem/diamond-pau-deploy) repo for the underlying PAU stack deployment.
 
 > **Status:** living document. Items marked **(TBD)** await a definition from Soter / Sky Core (e.g. multisig `m/n` schemes, the `configurator` admin policy). Resolve them before first use.
 
@@ -12,13 +12,13 @@ Modeled on the [Sky PE checklists](https://github.com/sky-ecosystem/pe-checklist
 
 - `* [ ]` items must each be verified and checked off.
 - All addresses must be in **checksummed** form and cross-checked against the **chainlog** (or the agreed source of truth for this deployment).
-- Role identifiers are `keccak256` of the role name — e.g. `ALLOCATOR_ROLE = keccak256("ALLOCATOR_ROLE")`, `DEFAULT_ADMIN_ROLE = 0x00`. `ALLOCATOR_ROLE` on AccessControls is administered by `DEFAULT_ADMIN_ROLE` (OpenZeppelin default); the factory does not apply custom role-admin overrides.
+- Role identifiers are `keccak256` of the role name — e.g. `ALLOCATOR_ROLE = keccak256("ALLOCATOR_ROLE")`, `DEFAULT_ADMIN_ROLE = 0x00`. `ALLOCATOR_ROLE` on AccessControls is administered by `DEFAULT_ADMIN_ROLE` (OpenZeppelin default); the assembler does not apply custom role-admin overrides.
 
 ## Allowed configuration
 
 This table is the **source of truth for what may appear in each deploy argument** for current deployments. Edit it (and bump the revision) as policy evolves; the checklist below verifies a deployment against this table rather than restating the policy inline.
 
-> **Revision:** 1 (aligned with `DefaultPAUFactory` `1.0.0`). **(TBD)** rows are not yet defined.
+> **Revision:** 1 (aligned with `DefaultPAUAssembler` `1.0.0`). **(TBD)** rows are not yet defined.
 
 | Argument                            | Allowed value(s) for current deployments                                                    |
 | ----------------------------------- | ------------------------------------------------------------------------------------------- |
@@ -36,9 +36,9 @@ Each `allocatorAgentConfigs` entry deploys one agent that receives `ALLOCATOR_RO
 
 ## Checklist
 
-### 1. Factory & dependencies
+### 1. Assembler & dependencies
 
-- [ ] The `DefaultPAUFactory` source matches the audited commit, and the deployed bytecode matches that source.
+- [ ] The `DefaultPAUAssembler` source matches the audited commit, and the deployed bytecode matches that source.
 - [ ] `pauFactory_` is the canonical, audited `PAUFactory` for this deployment (chainlog), and its `beacon()` is the intended Beacon.
 - [ ] `administeredAgentFactory_` is the canonical, audited `AdministeredAgentFactory` (chainlog).
 
@@ -54,11 +54,11 @@ Each `allocatorAgentConfigs` entry deploys one agent that receives `ALLOCATOR_RO
 
 ### 3. Post-deploy
 
-The factory wires every role and renounces its own deterministically — audited and covered by the test suite — so given a correct factory (§1) and correct inputs (§2), the resulting permission layout follows by construction. Per-role re-verification is therefore **not** required; the remaining checks are about the deploy succeeding and its outputs being recorded correctly.
+The assembler wires every role and renounces its own deterministically — audited and covered by the test suite — so given a correct assembler (§1) and correct inputs (§2), the resulting permission layout follows by construction. Per-role re-verification is therefore **not** required; the remaining checks are about the deploy succeeding and its outputs being recorded correctly.
 
 - [ ] The deploy transaction succeeded and emitted `Deployment` with the expected addresses and configuration.
 - [ ] The deployed addresses are recorded correctly in the deployment artifacts / chainlog.
-- [ ] _(Optional, defense-in-depth)_ Spot-check that the factory address holds no roles on the deployed contracts — redundant with §1 if the audited factory was used.
+- [ ] _(Optional, defense-in-depth)_ Spot-check that the assembler address holds no roles on the deployed contracts — redundant with §1 if the audited assembler was used.
 
 ### 4. Sign-off
 

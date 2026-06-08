@@ -3,9 +3,9 @@ pragma solidity ^0.8.34;
 
 import { Test } from "../../lib/forge-std/src/Test.sol";
 
-import { IDefaultPAUFactory } from "../../src/interfaces/IDefaultPAUFactory.sol";
+import { IDefaultPAUAssembler } from "../../src/interfaces/IDefaultPAUAssembler.sol";
 
-import { DefaultPAUFactory } from "../../src/DefaultPAUFactory.sol";
+import { DefaultPAUAssembler } from "../../src/DefaultPAUAssembler.sol";
 
 interface IAdministeredAgentLike {
 
@@ -88,7 +88,7 @@ interface IPAUFactoryLike {
  * @notice Integration coverage against the *canonical* diamond-pau PAUFactory and the real
  *         AdministeredAgentFactory (no mocks). Exercises the adapter against the real bytecode.
  */
-contract DefaultPAUFactory_Integration_Tests is Test {
+contract DefaultPAUAssembler_Integration_Tests is Test {
 
     address internal constant PAU_FACTORY                = 0x69A5d548830AC2A4Ba90A44a2C75BDA71f97fc66;
     address internal constant ADMINISTERED_AGENT_FACTORY = 0x2968c3b5478cF93B70aB1e24255d4EDBBd27a089;
@@ -100,12 +100,12 @@ contract DefaultPAUFactory_Integration_Tests is Test {
     bytes32 internal constant AAVE_INTEGRATION_ID           = "AAVE_FACET";
     bytes32 internal constant TRANSFER_ASSET_INTEGRATION_ID = "TRANSFER_ASSET_FACET";
 
-    DefaultPAUFactory internal factory;
+    DefaultPAUAssembler internal assembler;
 
     function setUp() external {
         vm.createSelectFork("mainnet", 25270600);
 
-        factory = new DefaultPAUFactory(PAU_FACTORY, ADMINISTERED_AGENT_FACTORY);
+        assembler = new DefaultPAUAssembler(PAU_FACTORY, ADMINISTERED_AGENT_FACTORY);
     }
 
     function test_deploy() external {
@@ -115,7 +115,7 @@ contract DefaultPAUFactory_Integration_Tests is Test {
         integrationIds[0] = AAVE_INTEGRATION_ID;
         integrationIds[1] = TRANSFER_ASSET_INTEGRATION_ID;
 
-        IDefaultPAUFactory.AdminConfig memory adminConfig = IDefaultPAUFactory.AdminConfig({
+        IDefaultPAUAssembler.AdminConfig memory adminConfig = IDefaultPAUAssembler.AdminConfig({
             accessControlAdmins: new address[](2),
             proxyAdmins:         new address[](2),
             rateLimitsAdmins:    new address[](2)
@@ -128,9 +128,9 @@ contract DefaultPAUFactory_Integration_Tests is Test {
         adminConfig.rateLimitsAdmins[0]    = admin;
         adminConfig.rateLimitsAdmins[1]    = makeAddr("rateLimitsAdmin");
 
-        IDefaultPAUFactory.AdministeredAgentConfig[] memory administeredAgentConfigs = new IDefaultPAUFactory.AdministeredAgentConfig[](2);
+        IDefaultPAUAssembler.AdministeredAgentConfig[] memory administeredAgentConfigs = new IDefaultPAUAssembler.AdministeredAgentConfig[](2);
 
-        administeredAgentConfigs[0] = IDefaultPAUFactory.AdministeredAgentConfig({
+        administeredAgentConfigs[0] = IDefaultPAUAssembler.AdministeredAgentConfig({
             admins:   new address[](2),
             actors:   new address[](3),
             grantors: new address[](2),
@@ -150,7 +150,7 @@ contract DefaultPAUFactory_Integration_Tests is Test {
         administeredAgentConfigs[0].revokers[0] = makeAddr("revoker1");
         administeredAgentConfigs[0].revokers[1] = makeAddr("revoker2");
 
-        administeredAgentConfigs[1] = IDefaultPAUFactory.AdministeredAgentConfig({
+        administeredAgentConfigs[1] = IDefaultPAUAssembler.AdministeredAgentConfig({
             admins:   new address[](1),
             actors:   new address[](1),
             grantors: new address[](1),
@@ -171,7 +171,7 @@ contract DefaultPAUFactory_Integration_Tests is Test {
             address          accessControls,
             address          rateLimits,
             address[] memory allocatorAgents
-        ) = factory.deploy(integrationIds, adminConfig, administeredAgentConfigs);
+        ) = assembler.deploy(integrationIds, adminConfig, administeredAgentConfigs);
 
         // Assert allocatorAgents state.
         assertEq(allocatorAgents.length, 2);
@@ -207,7 +207,7 @@ contract DefaultPAUFactory_Integration_Tests is Test {
 
         assertEq(IAccessControlLike(accessControls).hasRole(DEFAULT_ADMIN_ROLE, adminConfig.accessControlAdmins[0]), true);
         assertEq(IAccessControlLike(accessControls).hasRole(DEFAULT_ADMIN_ROLE, adminConfig.accessControlAdmins[1]), true);
-        assertEq(IAccessControlLike(accessControls).hasRole(DEFAULT_ADMIN_ROLE, address(factory)),                   false);
+        assertEq(IAccessControlLike(accessControls).hasRole(DEFAULT_ADMIN_ROLE, address(assembler)),                 false);
         assertEq(IAccessControlLike(accessControls).hasRole(ALLOCATOR_ROLE,     allocatorAgents[0]),                 true);
         assertEq(IAccessControlLike(accessControls).hasRole(ALLOCATOR_ROLE,     allocatorAgents[1]),                 true);
 
@@ -216,7 +216,7 @@ contract DefaultPAUFactory_Integration_Tests is Test {
         // Assert ALMProxy state.
         assertEq(IAccessControlLike(proxy).hasRole(DEFAULT_ADMIN_ROLE,                adminConfig.proxyAdmins[0]), true);
         assertEq(IAccessControlLike(proxy).hasRole(DEFAULT_ADMIN_ROLE,                adminConfig.proxyAdmins[1]), true);
-        assertEq(IAccessControlLike(proxy).hasRole(DEFAULT_ADMIN_ROLE,                address(factory)),           false);
+        assertEq(IAccessControlLike(proxy).hasRole(DEFAULT_ADMIN_ROLE,                address(assembler)),         false);
         assertEq(IAccessControlLike(proxy).hasRole(IALMProxyLike(proxy).CONTROLLER(), controller),                 true);
 
         // Assert Controller state.
@@ -239,7 +239,7 @@ contract DefaultPAUFactory_Integration_Tests is Test {
         // Assert RateLimits state.
         assertEq(IAccessControlLike(rateLimits).hasRole(DEFAULT_ADMIN_ROLE,                       adminConfig.rateLimitsAdmins[0]), true);
         assertEq(IAccessControlLike(rateLimits).hasRole(DEFAULT_ADMIN_ROLE,                       adminConfig.rateLimitsAdmins[1]), true);
-        assertEq(IAccessControlLike(rateLimits).hasRole(DEFAULT_ADMIN_ROLE,                       address(factory)),                false);
+        assertEq(IAccessControlLike(rateLimits).hasRole(DEFAULT_ADMIN_ROLE,                       address(assembler)),                false);
         assertEq(IAccessControlLike(rateLimits).hasRole(IRateLimitsLike(rateLimits).CONTROLLER(), controller),                      true);
     }
 

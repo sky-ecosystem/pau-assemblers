@@ -3,9 +3,9 @@ pragma solidity ^0.8.34;
 
 import { Test } from "../../lib/forge-std/src/Test.sol";
 
-import { IDefaultPAUFactory } from "../../src/interfaces/IDefaultPAUFactory.sol";
+import { IDefaultPAUAssembler } from "../../src/interfaces/IDefaultPAUAssembler.sol";
 
-import { DefaultPAUFactory } from "../../src/DefaultPAUFactory.sol";
+import { DefaultPAUAssembler } from "../../src/DefaultPAUAssembler.sol";
 
 interface IAdministeredAgentLike {
 
@@ -38,12 +38,12 @@ interface IRateLimitsLike {
 }
 
 /**
- * @notice Full end-to-end integration: the factory deploys a real PAU stack (real Beacon,
+ * @notice Full end-to-end integration: the assembler deploys a real PAU stack (real Beacon,
  *         PAUFactory, Controller, ALMProxy, RateLimits) with a real TransferAssetFacet integration
  *         registered, then an actor routes a real ERC20 transfer through
  *         AdministeredAgent -> Controller -> facet -> ALMProxy -> token.
  */
-contract DefaultPAUFactory_TransferAsset_Integration_Tests is Test {
+contract DefaultPAUAssembler_TransferAsset_Integration_Tests is Test {
 
     address internal constant PAU_FACTORY                = 0x69A5d548830AC2A4Ba90A44a2C75BDA71f97fc66;
     address internal constant ADMINISTERED_AGENT_FACTORY = 0x2968c3b5478cF93B70aB1e24255d4EDBBd27a089;
@@ -55,7 +55,7 @@ contract DefaultPAUFactory_TransferAsset_Integration_Tests is Test {
     address internal allocator = makeAddr("allocator");
     address internal recipient = makeAddr("recipient");
 
-    DefaultPAUFactory internal factory;
+    DefaultPAUAssembler internal assembler;
 
     address internal accessControls;
     address internal proxy;
@@ -68,7 +68,7 @@ contract DefaultPAUFactory_TransferAsset_Integration_Tests is Test {
     function setUp() external {
         vm.createSelectFork("mainnet", 25270600);
 
-        factory = new DefaultPAUFactory(PAU_FACTORY, ADMINISTERED_AGENT_FACTORY);
+        assembler = new DefaultPAUAssembler(PAU_FACTORY, ADMINISTERED_AGENT_FACTORY);
 
         bytes32[] memory integrationIds = new bytes32[](1);
         integrationIds[0] = TRANSFER_ASSET_INTEGRATION_ID;
@@ -76,7 +76,7 @@ contract DefaultPAUFactory_TransferAsset_Integration_Tests is Test {
         address[] memory admins = new address[](1);
         admins[0] = admin;
 
-        IDefaultPAUFactory.AdminConfig memory adminConfig = IDefaultPAUFactory.AdminConfig({
+        IDefaultPAUAssembler.AdminConfig memory adminConfig = IDefaultPAUAssembler.AdminConfig({
             accessControlAdmins: admins,
             proxyAdmins:         admins,
             rateLimitsAdmins:    admins
@@ -85,14 +85,14 @@ contract DefaultPAUFactory_TransferAsset_Integration_Tests is Test {
         address[] memory allocators = new address[](1);
         allocators[0] = allocator;
 
-        IDefaultPAUFactory.AdministeredAgentConfig memory administeredAgentConfig = IDefaultPAUFactory.AdministeredAgentConfig({
+        IDefaultPAUAssembler.AdministeredAgentConfig memory administeredAgentConfig = IDefaultPAUAssembler.AdministeredAgentConfig({
             admins:   admins,
             actors:   allocators,
             grantors: new address[](0),
             revokers: new address[](0)
         });
 
-        IDefaultPAUFactory.AdministeredAgentConfig[] memory administeredAgentConfigs = new IDefaultPAUFactory.AdministeredAgentConfig[](1);
+        IDefaultPAUAssembler.AdministeredAgentConfig[] memory administeredAgentConfigs = new IDefaultPAUAssembler.AdministeredAgentConfig[](1);
         administeredAgentConfigs[0] = administeredAgentConfig;
 
         address[] memory allocatorAgents;
@@ -103,7 +103,7 @@ contract DefaultPAUFactory_TransferAsset_Integration_Tests is Test {
             accessControls,
             rateLimits,
             allocatorAgents
-        ) = factory.deploy(integrationIds, adminConfig, administeredAgentConfigs);
+        ) = assembler.deploy(integrationIds, adminConfig, administeredAgentConfigs);
 
         allocatorAgent = allocatorAgents[0];
 

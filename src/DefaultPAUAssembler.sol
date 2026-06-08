@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity ^0.8.34;
 
-import { IDefaultPAUFactory } from "./interfaces/IDefaultPAUFactory.sol";
+import { IDefaultPAUAssembler } from "./interfaces/IDefaultPAUAssembler.sol";
 
 interface IPAUFactoryLike {
 
@@ -62,7 +62,7 @@ interface IAdministeredAgentLike {
 
 }
 
-contract DefaultPAUFactory is IDefaultPAUFactory {
+contract DefaultPAUAssembler is IDefaultPAUAssembler {
 
     /**********************************************************************************************/
     /*** Constants                                                                              ***/
@@ -72,17 +72,17 @@ contract DefaultPAUFactory is IDefaultPAUFactory {
 
     bytes32 internal constant _ALLOCATOR_ROLE = keccak256("ALLOCATOR_ROLE");
 
-    /// @inheritdoc IDefaultPAUFactory
+    /// @inheritdoc IDefaultPAUAssembler
     string public constant override VERSION = "1.0.0";
 
     /**********************************************************************************************/
     /*** Declarations                                                                           ***/
     /**********************************************************************************************/
 
-    /// @inheritdoc IDefaultPAUFactory
+    /// @inheritdoc IDefaultPAUAssembler
     address public immutable pauFactory;
 
-    /// @inheritdoc IDefaultPAUFactory
+    /// @inheritdoc IDefaultPAUAssembler
     address public immutable administeredAgentFactory;
 
     /**********************************************************************************************/
@@ -101,7 +101,7 @@ contract DefaultPAUFactory is IDefaultPAUFactory {
     /*** External Interactive Functions                                                         ***/
     /**********************************************************************************************/
 
-    /// @inheritdoc IDefaultPAUFactory
+    /// @inheritdoc IDefaultPAUAssembler
     function deploy(
         bytes32[]                 memory integrationIds,
         AdminConfig               memory adminConfig,
@@ -149,7 +149,7 @@ contract DefaultPAUFactory is IDefaultPAUFactory {
             IControllerLike(controller).updateIntegrations(integrationIds);
         }
 
-        // Step 5: Revoke all roles from factory.
+        // Step 5: Revoke all roles from assembler.
 
         IAccessControlLike(accessControls).revokeRole(_DEFAULT_ADMIN_ROLE, address(this));
         IAccessControlLike(proxy).revokeRole(_DEFAULT_ADMIN_ROLE,          address(this));

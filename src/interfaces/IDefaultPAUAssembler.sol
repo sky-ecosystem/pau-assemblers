@@ -2,8 +2,8 @@
 pragma solidity ^0.8.34;
 
 /**
- * @title  IDefaultPAUFactory
- * @notice External interface for the {DefaultPAUFactory}, a one-shot helper that deploys and
+ * @title  IDefaultPAUAssembler
+ * @notice External interface for the {DefaultPAUAssembler}, a one-shot helper that deploys and
  *         configures a full PAU stack (ALMProxy, RateLimits, Controller) with allocators as
  *         AdministeredAgent contracts, in a single transaction. It wires up roles, syncs
  *         integrations on the Controller, configures each AdministeredAgent with the uniquely
@@ -11,7 +11,7 @@ pragma solidity ^0.8.34;
  * @dev    All deployed contracts are returned as plain addresses; callers cast them to the
  *         relevant component interfaces as needed.
  */
-interface IDefaultPAUFactory {
+interface IDefaultPAUAssembler {
 
     /**********************************************************************************************/
     /*** Custom Errors                                                                          ***/
@@ -90,7 +90,7 @@ interface IDefaultPAUFactory {
     /**********************************************************************************************/
 
     /**
-     * @notice Semantic version of this factory implementation.
+     * @notice Semantic version of this assembler implementation.
      * @return The version string.
      */
     function VERSION() external view returns (string memory);
@@ -116,7 +116,7 @@ interface IDefaultPAUFactory {
      *         allocators as AdministeredAgent contracts, in a single transaction. Wires up roles,
      *         syncs integrations on the Controller, configures each AdministeredAgent with the
      *         respective supplied admins/actors/grantors/revokers.
-     * @dev    Emits {Deployment} on completion. After this call, this factory holds no privileged
+     * @dev    Emits {Deployment} on completion. After this call, this assembler holds no privileged
      *         roles on any of the returned contracts. The Controller is granted CONTROLLER on the
      *         ALMProxy (the role that gates `doCall` for a standard proxy).
      *
