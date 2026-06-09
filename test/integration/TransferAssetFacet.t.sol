@@ -77,19 +77,19 @@ contract DefaultPAUAssembler_TransferAsset_Integration_Tests is Test {
         admins[0] = admin;
 
         IDefaultPAUAssembler.AdminConfig memory adminConfig = IDefaultPAUAssembler.AdminConfig({
-            accessControlAdmins: admins,
-            proxyAdmins:         admins,
-            rateLimitsAdmins:    admins
+            accessControlAdmins : admins,
+            proxyAdmins         : admins,
+            rateLimitsAdmins    : admins
         });
 
         address[] memory allocators = new address[](1);
         allocators[0] = allocator;
 
         IDefaultPAUAssembler.AdministeredAgentConfig memory administeredAgentConfig = IDefaultPAUAssembler.AdministeredAgentConfig({
-            admins:   admins,
-            actors:   allocators,
-            grantors: new address[](0),
-            revokers: new address[](0)
+            admins   : admins,
+            actors   : allocators,
+            grantors : new address[](0),
+            revokers : new address[](0)
         });
 
         IDefaultPAUAssembler.AdministeredAgentConfig[] memory administeredAgentConfigs = new IDefaultPAUAssembler.AdministeredAgentConfig[](1);

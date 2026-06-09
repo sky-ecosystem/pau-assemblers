@@ -90,7 +90,7 @@ contract DefaultPAUAssembler is IDefaultPAUAssembler {
 
     constructor(address administeredAgentFactory_, address pauFactory_) {
         require(administeredAgentFactory_ != address(0), ZeroAdministeredAgentFactory());
-        require(pauFactory_ != address(0),               ZeroPAUFactory());
+        require(pauFactory_               != address(0), ZeroPAUFactory());
 
         administeredAgentFactory = administeredAgentFactory_;
         pauFactory               = pauFactory_;
@@ -205,14 +205,14 @@ contract DefaultPAUAssembler is IDefaultPAUAssembler {
         address            proxy,
         address            rateLimits,
         AdminConfig memory adminConfig,
-        address[]   memory allocators
+        address[]   memory allocatorAgents
     )
         internal
     {
         _grantDefaultAdmins(accessControls, adminConfig.accessControlAdmins);
 
-        for (uint256 i = 0; i < allocators.length; ++i) {
-            IAccessControlLike(accessControls).grantRole(_ALLOCATOR_ROLE, allocators[i]);
+        for (uint256 i = 0; i < allocatorAgents.length; ++i) {
+            IAccessControlLike(accessControls).grantRole(_ALLOCATOR_ROLE, allocatorAgents[i]);
         }
 
         _grantDefaultAdmins(proxy, adminConfig.proxyAdmins);

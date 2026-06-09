@@ -138,18 +138,18 @@ contract DefaultPAUAssembler_Integration_Tests is Test {
 
     function test_deploy_noAgentAdmins() external {
         IDefaultPAUAssembler.AdminConfig memory adminConfig = IDefaultPAUAssembler.AdminConfig({
-            accessControlAdmins: new address[](0),
-            proxyAdmins:         new address[](0),
-            rateLimitsAdmins:    new address[](0)
+            accessControlAdmins : new address[](0),
+            proxyAdmins         : new address[](0),
+            rateLimitsAdmins    : new address[](0)
         });
 
         IDefaultPAUAssembler.AdministeredAgentConfig[] memory administeredAgentConfigs = new IDefaultPAUAssembler.AdministeredAgentConfig[](1);
 
         administeredAgentConfigs[0] = IDefaultPAUAssembler.AdministeredAgentConfig({
-            admins:   new address[](0),
-            actors:   new address[](0),
-            grantors: new address[](0),
-            revokers: new address[](0)
+            admins   : new address[](0),
+            actors   : new address[](0),
+            grantors : new address[](0),
+            revokers : new address[](0)
         });
 
         vm.expectRevert(IDefaultPAUAssembler.NoAgentAdmins.selector);
@@ -160,18 +160,18 @@ contract DefaultPAUAssembler_Integration_Tests is Test {
         IDefaultPAUAssembler.AdministeredAgentConfig[] memory administeredAgentConfigs = new IDefaultPAUAssembler.AdministeredAgentConfig[](0);
 
         IDefaultPAUAssembler.AdminConfig memory adminConfig = IDefaultPAUAssembler.AdminConfig({
-            accessControlAdmins: new address[](0),
-            proxyAdmins:         new address[](0),
-            rateLimitsAdmins:    new address[](0)
+            accessControlAdmins : new address[](0),
+            proxyAdmins         : new address[](0),
+            rateLimitsAdmins    : new address[](0)
         });
 
         vm.expectRevert(IDefaultPAUAssembler.NoDefaultAdmins.selector);
         assembler.deploy(new bytes32[](0), adminConfig, administeredAgentConfigs);
 
         adminConfig = IDefaultPAUAssembler.AdminConfig({
-            accessControlAdmins: new address[](1),
-            proxyAdmins:         new address[](0),
-            rateLimitsAdmins:    new address[](0)
+            accessControlAdmins : new address[](1),
+            proxyAdmins         : new address[](0),
+            rateLimitsAdmins    : new address[](0)
         });
 
         adminConfig.accessControlAdmins[0] = makeAddr("accessControlAdmin");
@@ -180,9 +180,9 @@ contract DefaultPAUAssembler_Integration_Tests is Test {
         assembler.deploy(new bytes32[](0), adminConfig, administeredAgentConfigs);
 
         adminConfig = IDefaultPAUAssembler.AdminConfig({
-            accessControlAdmins: new address[](1),
-            proxyAdmins:         new address[](1),
-            rateLimitsAdmins:    new address[](0)
+            accessControlAdmins : new address[](1),
+            proxyAdmins         : new address[](1),
+            rateLimitsAdmins    : new address[](0)
         });
 
         adminConfig.accessControlAdmins[0] = makeAddr("accessControlAdmin");
@@ -196,18 +196,18 @@ contract DefaultPAUAssembler_Integration_Tests is Test {
         IDefaultPAUAssembler.AdministeredAgentConfig[] memory administeredAgentConfigs = new IDefaultPAUAssembler.AdministeredAgentConfig[](0);
 
         IDefaultPAUAssembler.AdminConfig memory adminConfig = IDefaultPAUAssembler.AdminConfig({
-            accessControlAdmins: new address[](1),
-            proxyAdmins:         new address[](0),
-            rateLimitsAdmins:    new address[](0)
+            accessControlAdmins : new address[](1),
+            proxyAdmins         : new address[](0),
+            rateLimitsAdmins    : new address[](0)
         });
 
         vm.expectRevert(IDefaultPAUAssembler.ZeroDefaultAdmin.selector);
         assembler.deploy(new bytes32[](0), adminConfig, administeredAgentConfigs);
 
         adminConfig = IDefaultPAUAssembler.AdminConfig({
-            accessControlAdmins: new address[](1),
-            proxyAdmins:         new address[](1),
-            rateLimitsAdmins:    new address[](0)
+            accessControlAdmins : new address[](1),
+            proxyAdmins         : new address[](1),
+            rateLimitsAdmins    : new address[](0)
         });
 
         adminConfig.accessControlAdmins[0] = makeAddr("accessControlAdmin");
@@ -216,9 +216,9 @@ contract DefaultPAUAssembler_Integration_Tests is Test {
         assembler.deploy(new bytes32[](0), adminConfig, administeredAgentConfigs);
 
         adminConfig = IDefaultPAUAssembler.AdminConfig({
-            accessControlAdmins: new address[](1),
-            proxyAdmins:         new address[](1),
-            rateLimitsAdmins:    new address[](1)
+            accessControlAdmins : new address[](1),
+            proxyAdmins         : new address[](1),
+            rateLimitsAdmins    : new address[](1)
         });
 
         adminConfig.accessControlAdmins[0] = makeAddr("accessControlAdmin");
@@ -234,9 +234,9 @@ contract DefaultPAUAssembler_Integration_Tests is Test {
         integrationIds[1] = TRANSFER_ASSET_INTEGRATION_ID;
 
         IDefaultPAUAssembler.AdminConfig memory adminConfig = IDefaultPAUAssembler.AdminConfig({
-            accessControlAdmins: new address[](2),
-            proxyAdmins:         new address[](2),
-            rateLimitsAdmins:    new address[](2)
+            accessControlAdmins : new address[](2),
+            proxyAdmins         : new address[](2),
+            rateLimitsAdmins    : new address[](2)
         });
 
         adminConfig.accessControlAdmins[0] = makeAddr("accessControlAdmin1");
@@ -249,10 +249,10 @@ contract DefaultPAUAssembler_Integration_Tests is Test {
         IDefaultPAUAssembler.AdministeredAgentConfig[] memory administeredAgentConfigs = new IDefaultPAUAssembler.AdministeredAgentConfig[](2);
 
         administeredAgentConfigs[0] = IDefaultPAUAssembler.AdministeredAgentConfig({
-            admins:   new address[](2),
-            actors:   new address[](3),
-            grantors: new address[](2),
-            revokers: new address[](2)
+            admins   : new address[](2),
+            actors   : new address[](3),
+            grantors : new address[](2),
+            revokers : new address[](2)
         });
 
         administeredAgentConfigs[0].admins[0] = makeAddr("adminA1");
@@ -269,10 +269,10 @@ contract DefaultPAUAssembler_Integration_Tests is Test {
         administeredAgentConfigs[0].revokers[1] = makeAddr("revokerA2");
 
         administeredAgentConfigs[1] = IDefaultPAUAssembler.AdministeredAgentConfig({
-            admins:   new address[](1),
-            actors:   new address[](1),
-            grantors: new address[](1),
-            revokers: new address[](1)
+            admins   : new address[](1),
+            actors   : new address[](1),
+            grantors : new address[](1),
+            revokers : new address[](1)
         });
 
         administeredAgentConfigs[1].admins[0] = makeAddr("adminB1");
