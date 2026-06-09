@@ -3,23 +3,9 @@ pragma solidity ^0.8.34;
 
 import { IDefaultPAUAssembler } from "./interfaces/IDefaultPAUAssembler.sol";
 
-interface IPAUFactoryLike {
+interface IALMProxyLike {
 
-    function deployAccessControls(address admin) external returns (address accessControls);
-
-    function deployALMProxy(address admin) external returns (address almProxy);
-
-    function deployController(address accessControls, address proxy, address rateLimits)
-        external
-        returns (address controller);
-
-    function deployRateLimits(address admin) external returns (address rateLimits);
-
-}
-
-interface IAdministeredAgentFactoryLike {
-
-    function deploy(address admin) external returns (address);
+    function CONTROLLER() external view returns (bytes32);
 
 }
 
@@ -31,21 +17,10 @@ interface IAccessControlLike {
 
 }
 
-interface IRateLimitsLike {
+interface IAdministeredAgentFactoryLike {
 
-    function CONTROLLER() external view returns (bytes32);
+    function deploy(address admin) external returns (address);
 
-}
-
-interface IALMProxyLike {
-
-    function CONTROLLER() external view returns (bytes32);
-
-}
-
-interface IControllerLike {
-
-    function updateIntegrations(bytes32[] calldata ids) external;
 }
 
 interface IAdministeredAgentLike {
@@ -62,15 +37,39 @@ interface IAdministeredAgentLike {
 
 }
 
+interface IControllerLike {
+
+    function updateIntegrations(bytes32[] calldata ids) external;
+}
+
+interface IPAUFactoryLike {
+
+    function deployAccessControls(address admin) external returns (address accessControls);
+
+    function deployALMProxy(address admin) external returns (address almProxy);
+
+    function deployController(address accessControls, address proxy, address rateLimits)
+        external
+        returns (address controller);
+
+    function deployRateLimits(address admin) external returns (address rateLimits);
+
+}
+
+interface IRateLimitsLike {
+
+    function CONTROLLER() external view returns (bytes32);
+
+}
+
 contract DefaultPAUAssembler is IDefaultPAUAssembler {
 
     /**********************************************************************************************/
     /*** Constants                                                                              ***/
     /**********************************************************************************************/
 
+    bytes32 internal constant _ALLOCATOR_ROLE     = keccak256("ALLOCATOR_ROLE");
     bytes32 internal constant _DEFAULT_ADMIN_ROLE = 0x00;
-
-    bytes32 internal constant _ALLOCATOR_ROLE = keccak256("ALLOCATOR_ROLE");
 
     /// @inheritdoc IDefaultPAUAssembler
     string public constant override VERSION = "1.0.0";
@@ -80,21 +79,21 @@ contract DefaultPAUAssembler is IDefaultPAUAssembler {
     /**********************************************************************************************/
 
     /// @inheritdoc IDefaultPAUAssembler
-    address public immutable pauFactory;
+    address public immutable administeredAgentFactory;
 
     /// @inheritdoc IDefaultPAUAssembler
-    address public immutable administeredAgentFactory;
+    address public immutable pauFactory;
 
     /**********************************************************************************************/
     /*** Constructor                                                                            ***/
     /**********************************************************************************************/
 
-    constructor(address pauFactory_, address administeredAgentFactory_) {
-        require(pauFactory_ != address(0),               ZeroPAUFactory());
+    constructor(address administeredAgentFactory_, address pauFactory_) {
         require(administeredAgentFactory_ != address(0), ZeroAdministeredAgentFactory());
+        require(pauFactory_ != address(0),               ZeroPAUFactory());
 
-        pauFactory               = pauFactory_;
         administeredAgentFactory = administeredAgentFactory_;
+        pauFactory               = pauFactory_;
     }
 
     /**********************************************************************************************/
@@ -172,7 +171,7 @@ contract DefaultPAUAssembler is IDefaultPAUAssembler {
     /**********************************************************************************************/
 
     function _configureAgent(address agent, AdministeredAgentConfig memory config) internal {
-        require(config.admins.length > 0, NoAdmins());
+        require(config.admins.length > 0, NoAgentAdmins());
 
         for (uint256 i = 0; i < config.admins.length; ++i) {
             IAdministeredAgentLike(agent).addAdmin(config.admins[i]);
@@ -191,6 +190,15 @@ contract DefaultPAUAssembler is IDefaultPAUAssembler {
         }
     }
 
+    function _grantDefaultAdmins(address target, address[] memory admins) internal {
+        require(admins.length > 0, NoDefaultAdmins());
+
+        for (uint256 i = 0; i < admins.length; ++i) {
+            require(admins[i] != address(0), ZeroDefaultAdmin());
+            IAccessControlLike(target).grantRole(_DEFAULT_ADMIN_ROLE, admins[i]);
+        }
+    }
+
     function _grantRoles(
         address            accessControls,
         address            controller,
@@ -201,26 +209,17 @@ contract DefaultPAUAssembler is IDefaultPAUAssembler {
     )
         internal
     {
-        _grantDefaultAdmins(proxy, adminConfig.proxyAdmins);
-        IAccessControlLike(proxy).grantRole(IALMProxyLike(proxy).CONTROLLER(), controller);
-
-        _grantDefaultAdmins(rateLimits, adminConfig.rateLimitsAdmins);
-        IAccessControlLike(rateLimits).grantRole(IRateLimitsLike(rateLimits).CONTROLLER(), controller);
-
         _grantDefaultAdmins(accessControls, adminConfig.accessControlAdmins);
 
         for (uint256 i = 0; i < allocators.length; ++i) {
             IAccessControlLike(accessControls).grantRole(_ALLOCATOR_ROLE, allocators[i]);
         }
-    }
 
-    function _grantDefaultAdmins(address target, address[] memory admins) internal {
-        require(admins.length > 0, NoAdmins());
+        _grantDefaultAdmins(proxy, adminConfig.proxyAdmins);
+        IAccessControlLike(proxy).grantRole(IALMProxyLike(proxy).CONTROLLER(), controller);
 
-        for (uint256 i = 0; i < admins.length; ++i) {
-            require(admins[i] != address(0), ZeroAdmin());
-            IAccessControlLike(target).grantRole(_DEFAULT_ADMIN_ROLE, admins[i]);
-        }
+        _grantDefaultAdmins(rateLimits, adminConfig.rateLimitsAdmins);
+        IAccessControlLike(rateLimits).grantRole(IRateLimitsLike(rateLimits).CONTROLLER(), controller);
     }
 
 }

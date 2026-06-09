@@ -45,8 +45,8 @@ interface IRateLimitsLike {
  */
 contract DefaultPAUAssembler_TransferAsset_Integration_Tests is Test {
 
-    address internal constant PAU_FACTORY                = 0x69A5d548830AC2A4Ba90A44a2C75BDA71f97fc66;
     address internal constant ADMINISTERED_AGENT_FACTORY = 0x2968c3b5478cF93B70aB1e24255d4EDBBd27a089;
+    address internal constant PAU_FACTORY                = 0x69A5d548830AC2A4Ba90A44a2C75BDA71f97fc66;
     address internal constant USDC                       = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
 
     bytes32 internal constant TRANSFER_ASSET_INTEGRATION_ID = "TRANSFER_ASSET_FACET";
@@ -58,17 +58,17 @@ contract DefaultPAUAssembler_TransferAsset_Integration_Tests is Test {
     DefaultPAUAssembler internal assembler;
 
     address internal accessControls;
-    address internal proxy;
-    address internal controller;
-    address internal rateLimits;
     address internal allocatorAgent;
+    address internal controller;
+    address internal proxy;
+    address internal rateLimits;
 
     bytes32 internal transferRateLimitKey;
 
     function setUp() external {
         vm.createSelectFork("mainnet", 25270600);
 
-        assembler = new DefaultPAUAssembler(PAU_FACTORY, ADMINISTERED_AGENT_FACTORY);
+        assembler = new DefaultPAUAssembler(ADMINISTERED_AGENT_FACTORY, PAU_FACTORY);
 
         bytes32[] memory integrationIds = new bytes32[](1);
         integrationIds[0] = TRANSFER_ASSET_INTEGRATION_ID;

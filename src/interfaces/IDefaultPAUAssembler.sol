@@ -17,8 +17,11 @@ interface IDefaultPAUAssembler {
     /*** Custom Errors                                                                          ***/
     /**********************************************************************************************/
 
-    /// @notice Thrown when an admin array for a component is empty.
-    error NoAdmins();
+    /// @notice Thrown when an admin array for an AdministeredAgent is empty.
+    error NoAgentAdmins();
+
+    /// @notice Thrown when an admin array for a component's default admins is empty.
+    error NoDefaultAdmins();
 
     /// @notice Thrown when the supplied PAU factory is the zero address.
     error ZeroPAUFactory();
@@ -26,8 +29,8 @@ interface IDefaultPAUAssembler {
     /// @notice Thrown when the supplied AdministeredAgent factory is the zero address.
     error ZeroAdministeredAgentFactory();
 
-    /// @notice Thrown when a supplied admin address is the zero address.
-    error ZeroAdmin();
+    /// @notice Thrown when a supplied default admin address is the zero address.
+    error ZeroDefaultAdmin();
 
     /**********************************************************************************************/
     /*** Structs                                                                                ***/
