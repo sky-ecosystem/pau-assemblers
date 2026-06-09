@@ -9,51 +9,35 @@
 
 ## Overview
 
-A collection of one-shot **factory contracts for the Sky ecosystem**. Each factory deploys and fully
-wires a standardized on-chain system in a single transaction, hands all administrative rights to a
-caller-supplied admin, and renounces every role it held during setup — so the factory is trustless
-once the call returns.
+A collection of one-shot **factory contracts for the Sky ecosystem**. Each factory deploys and fully wires a standardized on-chain system in a single transaction, hands administrative rights to caller-supplied admins as defined by its configuration structs, and renounces every role it held during setup — so the factory is trustless once the call returns.
 
-The first factory builds on the [PAU](https://github.com/sky-ecosystem/diamond-pau) stack, giving a
-reviewable, deterministic path to deploying Prime PAUs as more primes enter the ecosystem and
-replacing ad-hoc manual deployments.
+The first factory builds on the [PAU](https://github.com/sky-ecosystem/diamond-pau) stack, giving a reviewable, deterministic path to deploying Prime PAUs as more primes enter the ecosystem and replacing ad-hoc manual deployments.
 
 ### Factories
 
-| Contract                       | Description                                                                                              |
-| ------------------------------ | -------------------------------------------------------------------------------------------------------- |
-| `PAUAdministeredAgentFactory`  | Deploys a full PAU stack (AccessControls, ALMProxy, RateLimits, Controller) plus an `AdministeredAgent`. |
+| Contract            | Description                                                                                                       |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `DefaultPAUAssembler` | Deploys a full PAU stack (AccessControls, ALMProxy, RateLimits, Controller) and one or more `AdministeredAgent`s. |
 
 ## Documentation
 
-| Document                                                                | Description                                                              |
-| ----------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| [PAU Administered Agent Factory](./docs/PAUAdministeredAgentFactory.md)  | Deploy flow, role/permission matrix, configuration, and security notes. |
+| Document                                                           | Description                                                             |
+| ------------------------------------------------------------------ | ----------------------------------------------------------------------- |
+| [Default PAU Assembler](./docs/DefaultPAUAssembler/README.md)          | Deploy flow, role/permission matrix, configuration, and security notes. |
+| [Sky Core Review Checklist](./docs/DefaultPAUAssembler/CHECKLIST.md) | Reviewer checklist for validating deploy arguments before sign-off.     |
 
 ## Design
 
 Every factory in this repository follows the same model:
 
 - **Atomic** — the full system is deployed and wired in a single call.
-- **Hand-off** — administrative rights are transferred to a caller-supplied `admin` (and any extra
-  admins) as part of that call.
-- **Trustless after deploy** — the factory renounces every role it held during setup, retaining no
-  control over the deployed contracts.
-- **Deterministic surface** — only the roles and configuration described by the inputs are applied,
-  keeping each deployment easy to review.
+- **Hand-off** — administrative rights are transferred to the addresses named in the deploy configuration (`AdminConfig` for the PAU stack, per-agent `admins` for each `AdministeredAgent`) as part of that call.
+- **Trustless after deploy** — the factory renounces every role it held during setup, retaining no control over the deployed contracts.
+- **Deterministic surface** — only the roles and configuration described by the inputs are applied, keeping each deployment easy to review.
 
-Per-factory mechanics — deploy flow, resulting role layout, and configuration — live under
-[`docs/`](./docs). The first, `PAUAdministeredAgentFactory`, builds on the
-[`diamond-pau`](https://github.com/sky-ecosystem/diamond-pau) PAU factory and the
-[`pau-administered-agent`](https://github.com/sky-ecosystem/pau-administered-agent) agent factory; see
-its [documentation](./docs/PAUAdministeredAgentFactory.md) for details.
+Per-factory mechanics — deploy flow, resulting role layout, and configuration — live under [`docs/`](./docs). The first, `DefaultPAUAssembler`, builds on the [`diamond-pau`](https://github.com/sky-ecosystem/diamond-pau) PAU factory and the [`pau-administered-agent`](https://github.com/sky-ecosystem/pau-administered-agent) agent factory; see its [documentation](./docs/DefaultPAUAssembler/README.md) for details.
 
-> **Auditor note.** Factory `src/` has no compile-time dependency on those repositories — it talks to
-> them only through inline `*Like` adapter interfaces, and the submodules are imported **only by the
-> tests**. They are pinned to pre-release refs — `pau-administered-agent` at the `v1.0.0-beta.0` tag and
-> `diamond-pau` at a non-release commit — and sit in the same audit slot as this factory; we may need to
-> re-pin or migrate once they ship a final release. See the
-> [dependency status note](./docs/PAUAdministeredAgentFactory.md#dependencies) for the exact refs.
+> **Auditor note.** Factory `src/` has no compile-time dependency on those repositories — it interfaces with them only through inline `*Like` adapter interfaces. Integration tests fork the target chain and call canonical on-chain `PAUFactory` and `AdministeredAgentFactory` deployments, which avoids pulling those repositories in as submodules.
 
 ## Quick Start
 
@@ -65,18 +49,14 @@ forge build
 
 ### Test
 
+Integration tests fork mainnet and require a valid RPC endpoint. Copy [`.env.example`](./.env.example) to `.env` and set `MAINNET_RPC_URL`, then:
+
 ```bash
 forge test
 ```
 
-The suite covers the factory in isolation (against the real PAU components with a mocked Controller),
-an integration pass against the canonical `PAUFactory`, and a full end-to-end test that routes a real
-ERC-20 transfer through `AdministeredAgent -> Controller -> TransferAssetFacet -> ALMProxy`.
-
 ## Conventions
 
 - Solidity `0.8.34`, `cancun` EVM.
-- The external surface of each factory lives in `src/interfaces/I<Factory>.sol` (errors, structs,
-  events, and address-returning functions). The `*Like` adapter interfaces for the underlying
-  contracts are declared inline in the implementation file.
+- The external surface of each factory lives in `src/interfaces/I<Factory>.sol` (errors, structs, events, and address-returning functions). The `*Like` adapter interfaces for the underlying contracts are declared inline in the implementation file.
 - Licensed under AGPL-3.0-or-later.
