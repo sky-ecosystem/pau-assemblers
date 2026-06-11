@@ -115,13 +115,13 @@ interface IDefaultPAUAssembler {
     /**********************************************************************************************/
 
     /**
-     * @notice Deploys and configures a full PAU stack (ALMProxy, RateLimits, Controller) with
-     *         allocators as AdministeredAgent contracts, in a single transaction. Wires up roles,
-     *         syncs integrations on the Controller, configures each AdministeredAgent with the
-     *         respective supplied admins/actors/grantors/revokers.
+     * @notice Deploys and configures a full PAU stack (ALMProxy, Controller, AccessControls,
+     *         RateLimits) with allocators as AdministeredAgent contracts, in a single transaction.
+     *         Wires up roles, syncs integrations on the Controller, configures each
+     *         AdministeredAgent with the respective supplied admins/actors/grantors/revokers.
      * @dev    Emits {Deployment} on completion. After this call, this assembler holds no privileged
      *         roles on any of the returned contracts. The Controller is granted CONTROLLER on the
-     *         ALMProxy (the role that gates `doCall` for a standard proxy).
+     *         ALMProxy and on the RateLimits.
      *
      *         Notes:
      *         - When `integrationIds` is empty, the Controller `updateIntegrations` call is
