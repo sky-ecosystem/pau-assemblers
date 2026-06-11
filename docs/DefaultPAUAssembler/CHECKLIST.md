@@ -20,17 +20,17 @@ This table is the **source of truth for what may appear in each deploy argument*
 
 > **Revision:** 1 (aligned with `DefaultPAUAssembler` `1.0.0`). **(TBD)** rows are not yet defined.
 
-| Argument                            | Allowed value(s) for current deployments                                                    |
-| ----------------------------------- | ------------------------------------------------------------------------------------------- |
-| `integrationIds`                    | Approved, Beacon-registered facets only; may be empty.                                      |
-| `adminConfig.accessControlAdmins`   | One or more valid addresses. **(TBD: which subproxies / multisigs)**                        |
-| `adminConfig.proxyAdmins`           | One or more valid addresses. **(TBD)**                                                      |
-| `adminConfig.rateLimitsAdmins`      | One or more valid addresses. **(TBD: e.g. `configurator` only)**                            |
-| `allocatorAgentConfigs`             | One or more agent configs; length determines how many `AdministeredAgent` contracts deploy. |
-| `allocatorAgentConfigs[i].admins`   | One or more valid addresses per agent. **(TBD)**                                            |
-| `allocatorAgentConfigs[i].actors`   | Pre-vetted multisigs (`m/n` **TBD** by Soter). May be empty.                                |
-| `allocatorAgentConfigs[i].grantors` | None (empty), unless policy allows. **(TBD)**                                               |
-| `allocatorAgentConfigs[i].revokers` | Pre-vetted multisigs (`m/n` **TBD** by Soter). May be empty. Agent-level revokers only.     |
+| Argument                            | Allowed value(s) for current deployments                                                      |
+| ----------------------------------- | --------------------------------------------------------------------------------------------- |
+| `integrationIds`                    | Approved, Beacon-registered facets only; may be empty.                                        |
+| `adminConfig.accessControlAdmins`   | One or more valid addresses. **(TBD: which subproxies / multisigs)**                          |
+| `adminConfig.proxyAdmins`           | One or more valid addresses. **(TBD)**                                                        |
+| `adminConfig.rateLimitsAdmins`      | One or more valid addresses. **(TBD: e.g. `configurator` only)**                              |
+| `allocatorAgentConfigs`             | Any number of agent configs; length determines how many `AdministeredAgent` contracts deploy. |
+| `allocatorAgentConfigs[i].admins`   | One or more valid addresses per agent. **(TBD)**                                              |
+| `allocatorAgentConfigs[i].actors`   | Pre-vetted multisigs (`m/n` **TBD** by Soter). May be empty.                                  |
+| `allocatorAgentConfigs[i].grantors` | None (empty), unless policy allows. **(TBD)**                                                 |
+| `allocatorAgentConfigs[i].revokers` | Pre-vetted multisigs (`m/n` **TBD** by Soter). May be empty. Agent-level revokers only.       |
 
 Each `allocatorAgentConfigs` entry deploys one agent that receives `ALLOCATOR_ROLE` on AccessControls. Actor EOAs operate through that agent contract; they do not hold `ALLOCATOR_ROLE` directly.
 
@@ -50,7 +50,7 @@ Each `allocatorAgentConfigs` entry deploys one agent that receives `ALLOCATOR_RO
 - [ ] `allocatorAgentConfigs.length` matches the intended number of allocator agents for this Prime.
 - [ ] For each `allocatorAgentConfigs[i]`, `admins`, `actors`, `grantors`, and `revokers` are reviewed against policy (including empty `grantors` / `revokers` / `actors` where permitted).
 
-> **Enforced on-chain (informational — not review items).** The deploy reverts on these, so they cannot be true of a successful deployment: empty `adminConfig` component arrays or empty per-agent `admins` (`NoAdmins`); zero admin in `adminConfig` (`ZeroAdmin`); zero factory dependency (`ZeroPAUFactory` / `ZeroAdministeredAgentFactory`); duplicate agent entries within a single config (`AccountAlreadyAdmin` / `AccountAlreadyActor` / `AccountAlreadyGrantor` / `AccountAlreadyRevoker`). Duplicate entries in `adminConfig` arrays are idempotent no-ops, not guarded.
+> **Enforced on-chain (informational — not review items).** The deploy reverts on these, so they cannot be true of a successful deployment: empty `adminConfig` component arrays or empty per-agent `admins` (`NoDefaultAdmins`); zero admin in `adminConfig` (`ZeroDefaultAdmin`); zero factory dependency (`ZeroPAUFactory` / `ZeroAdministeredAgentFactory`); duplicate agent entries within a single config (`AccountAlreadyAdmin` / `AccountAlreadyActor` / `AccountAlreadyGrantor` / `AccountAlreadyRevoker`). Duplicate entries in `adminConfig` arrays are idempotent no-ops, not guarded.
 
 ### 3. Post-deploy
 

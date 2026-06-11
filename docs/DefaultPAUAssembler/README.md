@@ -1,6 +1,6 @@
 # Default PAU Assembler
 
-`DefaultPAUAssembler` deploys and fully wires a Prime PAU stack plus one or more `AdministeredAgent` allocators in a single transaction, transfers administrative rights to caller-supplied admins, and renounces every role it held during setup. After the call returns the assembler holds **no** privileged role on any deployed contract.
+`DefaultPAUAssembler` deploys and fully wires a Prime PAU stack plus any number of `AdministeredAgent` allocators in a single transaction, transfers administrative rights to caller-supplied admins, and renounces every role it held during setup. After the call returns the assembler holds **no** privileged role on any deployed contract.
 
 Implementation version: `1.0.0` (`VERSION`).
 
@@ -100,7 +100,7 @@ Post-deploy invariants checked by `DefaultPAUAssembler.t.sol`:
 
 ### `AdminConfig`
 
-Admins for each PAU component. **Each array must contain at least one address** (`NoAdmins`); every entry must be non-zero (`ZeroAdmin`).
+Admins for each PAU component. **Each array must contain at least one address** (`NoDefaultAdmins`); every entry must be non-zero (`ZeroDefaultAdmin`).
 
 | Field                 | Granted on     |
 | --------------------- | -------------- |
@@ -114,12 +114,12 @@ The same address — and even the same memory array — may be reused across all
 
 One entry per allocator agent. The array length determines how many `AdministeredAgent` contracts are deployed; each receives `ALLOCATOR_ROLE` on AccessControls.
 
-| Field      | Meaning                                                      |
-| ---------- | ------------------------------------------------------------ |
-| `admins`   | Agent admins (must be non-empty per entry — `NoAdmins`).     |
-| `actors`   | May execute `call` / `batchCall` / `sendValue` on the agent. |
-| `grantors` | May add actors on the agent (may be empty).                  |
-| `revokers` | May remove actors on the agent (may be empty).               |
+| Field      | Meaning                                                       |
+| ---------- | ------------------------------------------------------------- |
+| `admins`   | Agent admins (must be non-empty per entry — `NoAgentAdmins`). |
+| `actors`   | May execute `call` / `batchCall` / `sendValue` on the agent.  |
+| `grantors` | May add actors on the agent (may be empty).                   |
+| `revokers` | May remove actors on the agent (may be empty).                |
 
 `grantors` and `revokers` are independent: a valid deploy may set multiple `actors`, zero `grantors`, and multiple `revokers` on the same agent. These are **agent-level** revokers (who may call `removeActor`), not ALMProxy freezer roles.
 
@@ -131,8 +131,8 @@ The same address may appear in `admins` and in `actors` (or across `AdminConfig`
 
 ## Preconditions & behavior
 
-- **Each admin array must be non-empty.** `AdminConfig.accessControlAdmins`, `proxyAdmins`, and `rateLimitsAdmins`, and each `AdministeredAgentConfig.admins`, must contain at least one address (`NoAdmins`).
-- **No zero admins.** Any admin address in `AdminConfig` must be non-zero (`ZeroAdmin`).
+- **Each admin array must be non-empty.** `AdminConfig.accessControlAdmins`, `proxyAdmins`, and `rateLimitsAdmins`, and each `AdministeredAgentConfig.admins`, must contain at least one address (`NoDefaultAdmins` / `NoAgentAdmins`).
+- **No zero admins.** Any admin address in `AdminConfig` must be non-zero (`ZeroDefaultAdmin`).
 - **Integrations must be pre-registered on the Beacon.** `updateIntegrations` reads each id's config (facet + selector wiring) from the Beacon the underlying `PAUFactory` points at. Unknown ids revert.
 - **Empty `integrationIds` is supported** — the `updateIntegrations` call is skipped (the Controller reverts on an empty array), so a stack can be deployed bare and configured later by an admin.
 - **Empty `grantors` / `revokers` / `actors` arrays are supported** on an agent (subject to each agent still having at least one admin).
