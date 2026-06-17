@@ -60,3 +60,9 @@ forge test
 - Solidity `0.8.34`, `cancun` EVM.
 - The external surface of each factory lives in `src/interfaces/I<Factory>.sol` (errors, structs, events, and address-returning functions). The `*Like` adapter interfaces for the underlying contracts are declared inline in the implementation file.
 - Licensed under AGPL-3.0-or-later.
+
+---
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/84ca8724-b6ad-42ef-9c5b-32abd1bb5e03" height="100"/>
+</p>
