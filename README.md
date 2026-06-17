@@ -1,6 +1,6 @@
 # PAU Assemblers
 
-![Foundry CI](https://github.com/soterlabs/pau-assemblers/actions/workflows/test.yml/badge.svg)
+![Foundry CI](https://github.com/sky-ecosystem/pau-assemblers/actions/workflows/test.yml/badge.svg)
 [![Foundry][foundry-badge]][foundry]
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](./LICENSE)
 
