@@ -398,6 +398,7 @@ contract PAUAssembler_Integration_Tests is Test {
         assertEq(IAccessControlLike(accessControls[1]).hasRole(DEFAULT_ADMIN_ROLE, makeAddr("acAdminB")), true);
         assertEq(IAccessControlLike(accessControls[1]).hasRole(DEFAULT_ADMIN_ROLE, address(assembler)),   false);
         assertEq(IAccessControlLike(accessControls[1]).getRoleMemberCount(ALLOCATOR_ROLE),                0);
+        assertEq(IAccessControlLike(accessControls[1]).getRoleMemberCount(DEFAULT_ADMIN_ROLE),            1);
 
         // --- RateLimits: admin set, matching controller granted CONTROLLER, assembler revoked.
 
