@@ -217,13 +217,32 @@ contract DefaultNFATAssembler_Integration_Tests is Test {
         IDefaultNFATAssembler.PAUAssemblerInput memory pauInput  = _pauInput();
         IDefaultNFATAssembler.NFATFactoryInput  memory nfatInput = _nfatInput();
 
-        // Only assert the facility/proxy topics are present; addresses are deterministic but the
-        // full struct payload is covered by test_deploy's state assertions.
-        vm.recordLogs();
-        ( address proxy, address nfatFacility, , , , ) = assembler.deploy(pauInput, nfatInput);
+        // PAUAssembler deploys in CREATE order: proxy, accessControls, rateLimits, controller.
+        address[] memory expectedControllers = new address[](1);
+        expectedControllers[0] = vm.computeCreateAddress(PAU_FACTORY, vm.getNonce(PAU_FACTORY) + 3);
 
-        assertEq(nfatFacility, nfatFactory.facility());
-        assertTrue(proxy != address(0));
+        address[] memory expectedAccessControls = new address[](1);
+        expectedAccessControls[0] = vm.computeCreateAddress(PAU_FACTORY, vm.getNonce(PAU_FACTORY) + 1);
+
+        address[] memory expectedRateLimits = new address[](1);
+        expectedRateLimits[0] = vm.computeCreateAddress(PAU_FACTORY, vm.getNonce(PAU_FACTORY) + 2);
+
+        address[] memory expectedAllocatorAgents = new address[](1);
+        expectedAllocatorAgents[0] = vm.computeCreateAddress(ADMINISTERED_AGENT_FACTORY, vm.getNonce(ADMINISTERED_AGENT_FACTORY));
+
+        vm.expectEmit(address(assembler));
+        emit IDefaultNFATAssembler.Deployment(
+            vm.computeCreateAddress(PAU_FACTORY, vm.getNonce(PAU_FACTORY)),
+            nfatFactory.facility(),
+            expectedControllers,
+            expectedAccessControls,
+            expectedRateLimits,
+            expectedAllocatorAgents,
+            pauInput,
+            nfatInput
+        );
+
+        assembler.deploy(pauInput, nfatInput);
     }
 
 }
