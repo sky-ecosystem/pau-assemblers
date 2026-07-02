@@ -4,15 +4,15 @@ pragma solidity ^0.8.34;
 import { IPAUAssembler } from "./IPAUAssembler.sol";
 
 /**
- * @title  IDefaultNFATAssembler
- * @notice External interface for the {DefaultNFATAssembler}, a one-shot helper that deploys a full
+ * @title  IDefaultNFATPAUAssembler
+ * @notice External interface for the {DefaultNFATPAUAssembler}, a one-shot helper that deploys a full
  *         PAU stack via the {PAUAssembler} and then deploys an NFAT facility wired to the resulting
  *         shared ALMProxy, in a single transaction.
  * @dev    All deployed contracts are returned as plain addresses; callers cast them to the relevant
  *         component interfaces as needed. The NFAT facility's recipient and sole bud are both fixed
  *         to the deployed ALMProxy.
  */
-interface IDefaultNFATAssembler {
+interface IDefaultNFATPAUAssembler {
 
     /**********************************************************************************************/
     /*** Custom Errors                                                                          ***/
@@ -22,7 +22,7 @@ interface IDefaultNFATAssembler {
     error ZeroPAUAssembler();
 
     /// @notice Thrown when the supplied NFAT factory is the zero address.
-    error ZeroNFATFactory();
+    error ZeroNFATFacilityFactory();
 
     /**********************************************************************************************/
     /*** Structs                                                                                ***/
@@ -32,14 +32,14 @@ interface IDefaultNFATAssembler {
      * @notice The full set of {PAUAssembler} configuration arrays forwarded to its `deploy` call.
      * @param  controllerConfigs     Configuration for each Controller.
      * @param  rateLimitConfigs      Configuration for each RateLimits.
-     * @param  accessControlConfigs  Configuration for each AccessControls.
+     * @param  accessControlsConfigs  Configuration for each AccessControls.
      * @param  allocatorAgentConfigs Configuration for each allocator AdministeredAgent.
      * @param  almProxyConfig        Configuration for the shared ALMProxy.
      */
-    struct PAUAssemblerInput {
+    struct PAUAssemblerConfigs {
         IPAUAssembler.ControllerConfig[]        controllerConfigs;
         IPAUAssembler.RateLimitConfig[]         rateLimitConfigs;
-        IPAUAssembler.AccessControlConfig[]     accessControlConfigs;
+        IPAUAssembler.AccessControlsConfig[]    accessControlsConfigs;
         IPAUAssembler.AdministeredAgentConfig[] allocatorAgentConfigs;
         IPAUAssembler.ALMProxyConfig            almProxyConfig;
     }
@@ -55,7 +55,7 @@ interface IDefaultNFATAssembler {
      * @param  cops            Cops for the facility.
      * @param  wards           Wards for the facility.
      */
-    struct NFATFactoryInput {
+    struct NFATFacilityFactoryConfig {
         string    name;
         string    symbol;
         string    baseURI;
@@ -77,8 +77,8 @@ interface IDefaultNFATAssembler {
      * @param  accessControls    The deployed AccessControls contracts.
      * @param  rateLimits        The deployed RateLimits contracts.
      * @param  allocatorAgents   The deployed allocators as AdministeredAgent contracts.
-     * @param  pauAssemblerInput The configuration forwarded to the {PAUAssembler}.
-     * @param  nfatFactoryInput  The configuration forwarded to the NFAT factory.
+     * @param  pauAssemblerConfigs The configuration forwarded to the {PAUAssembler}.
+     * @param  nfatFacilityFactoryConfig  The configuration forwarded to the NFAT factory.
      */
     event Deployment(
         address           indexed proxy,
@@ -87,8 +87,8 @@ interface IDefaultNFATAssembler {
         address[]                 accessControls,
         address[]                 rateLimits,
         address[]                 allocatorAgents,
-        PAUAssemblerInput         pauAssemblerInput,
-        NFATFactoryInput          nfatFactoryInput
+        PAUAssemblerConfigs       pauAssemblerConfigs,
+        NFATFacilityFactoryConfig nfatFacilityFactoryConfig
     );
 
     /**********************************************************************************************/
@@ -109,9 +109,9 @@ interface IDefaultNFATAssembler {
 
     /**
      * @notice The factory used to deploy the NFAT facility.
-     * @return The address of the NFAT factory.
+     * @return The address of the NFAT facility factory.
      */
-    function nfatFactory() external view returns (address);
+    function nfatFacilityFactory() external view returns (address);
 
     /**********************************************************************************************/
     /*** Interactive Functions                                                                  ***/
@@ -122,8 +122,8 @@ interface IDefaultNFATAssembler {
      *         resulting shared ALMProxy, in a single transaction.
      * @dev    Emits {Deployment} on completion. The NFAT facility's recipient and sole bud are both
      *         set to the deployed ALMProxy.
-     * @param  pauAssemblerInput The configuration forwarded to the {PAUAssembler}.
-     * @param  nfatFactoryInput  The configuration forwarded to the NFAT factory.
+     * @param  pauAssemblerConfigs The configuration forwarded to the {PAUAssembler}.
+     * @param  nfatFacilityFactoryConfig  The configuration forwarded to the NFAT factory.
      * @return proxy             The deployed shared ALMProxy contract.
      * @return nfatFacility      The deployed NFAT facility contract.
      * @return controllers       The deployed Controller contracts.
@@ -132,8 +132,8 @@ interface IDefaultNFATAssembler {
      * @return allocatorAgents   The deployed allocator AdministeredAgent contracts.
      */
     function deploy(
-        PAUAssemblerInput memory pauAssemblerInput,
-        NFATFactoryInput  memory nfatFactoryInput
+        PAUAssemblerConfigs       memory pauAssemblerConfigs,
+        NFATFacilityFactoryConfig memory nfatFacilityFactoryConfig
     )
         external
         returns (

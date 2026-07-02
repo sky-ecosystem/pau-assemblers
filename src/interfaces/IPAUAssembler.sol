@@ -34,7 +34,7 @@ interface IPAUAssembler {
     /// @notice Thrown when a supplied default admin address is the zero address.
     error ZeroDefaultAdmin();
 
-    /// @notice Thrown when two AccessControlConfigs share the same `id`.
+    /// @notice Thrown when two AccessControlsConfigs share the same `id`.
     error DuplicateAccessControlsId(bytes32 id);
 
     /// @notice Thrown when two RateLimitConfigs share the same `id`.
@@ -55,12 +55,12 @@ interface IPAUAssembler {
      * @notice Configuration for a Controller deployed against the shared ALMProxy.
      * @param  integrationIds  Integration IDs to sync on the Controller (may be empty).
      * @param  rateLimitId     The `id` of the RateLimits this Controller is wired to.
-     * @param  accessControlId The `id` of the AccessControls this Controller is wired to.
+     * @param  accessControlsId The `id` of the AccessControls this Controller is wired to.
      */
     struct ControllerConfig {
         bytes32[] integrationIds;
         bytes32   rateLimitId;
-        bytes32   accessControlId;
+        bytes32   accessControlsId;
     }
 
     /**
@@ -79,7 +79,7 @@ interface IPAUAssembler {
      *                AdministeredAgentConfig.
      * @param  admins Default admins for the AccessControls contract.
      */
-    struct AccessControlConfig {
+    struct AccessControlsConfig {
         bytes32   id;
         address[] admins;
     }
@@ -94,7 +94,7 @@ interface IPAUAssembler {
 
     /**
      * @notice Configuration applied to an allocator AdministeredAgent after deployment.
-     * @param  accessControlId The `id` of the AccessControls this agent is granted the allocator
+     * @param  accessControlsId The `id` of the AccessControls this agent is granted the allocator
      *                         role on.
      * @param  admins          Addresses to configure as admins on the agent.
      * @param  actors          Addresses to configure as actors on the agent.
@@ -102,7 +102,7 @@ interface IPAUAssembler {
      * @param  revokers        Addresses to configure as revokers on the agent.
      */
     struct AdministeredAgentConfig {
-        bytes32   accessControlId;
+        bytes32   accessControlsId;
         address[] admins;
         address[] actors;
         address[] grantors;
@@ -123,7 +123,7 @@ interface IPAUAssembler {
      * @param  allocatorAgents       The deployed allocators as AdministeredAgent contracts.
      * @param  controllerConfigs     The configurations applied to each Controller.
      * @param  rateLimitConfigs      The configurations applied to each RateLimits.
-     * @param  accessControlConfigs  The configurations applied to each AccessControls.
+     * @param  accessControlsConfigs  The configurations applied to each AccessControls.
      * @param  allocatorAgentConfigs The configurations applied to each allocator AdministeredAgent.
      * @param  almProxyConfig        The configuration applied to the shared ALMProxy.
      */
@@ -135,7 +135,7 @@ interface IPAUAssembler {
         address[]                         allocatorAgents,
         ControllerConfig[]                controllerConfigs,
         RateLimitConfig[]                 rateLimitConfigs,
-        AccessControlConfig[]             accessControlConfigs,
+        AccessControlsConfig[]            accessControlsConfigs,
         AdministeredAgentConfig[]         allocatorAgentConfigs,
         ALMProxyConfig                    almProxyConfig
     );
@@ -182,7 +182,7 @@ interface IPAUAssembler {
      *           is skipped (the Controller reverts on an empty array).
      * @param  controllerConfigs     Configuration for each Controller.
      * @param  rateLimitConfigs      Configuration for each RateLimits.
-     * @param  accessControlConfigs  Configuration for each AccessControls.
+     * @param  accessControlsConfigs  Configuration for each AccessControls.
      * @param  allocatorAgentConfigs Configuration for each allocator AdministeredAgent.
      * @param  almProxyConfig        Configuration for the shared ALMProxy.
      * @return proxy                 The deployed shared ALMProxy contract.
@@ -194,7 +194,7 @@ interface IPAUAssembler {
     function deploy(
         ControllerConfig[]        memory controllerConfigs,
         RateLimitConfig[]         memory rateLimitConfigs,
-        AccessControlConfig[]     memory accessControlConfigs,
+        AccessControlsConfig[]    memory accessControlsConfigs,
         AdministeredAgentConfig[] memory allocatorAgentConfigs,
         ALMProxyConfig            memory almProxyConfig
     )

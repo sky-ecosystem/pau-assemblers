@@ -19,7 +19,7 @@ The first assembler builds on the [PAU](https://github.com/sky-ecosystem/diamond
 | ---------------------- | ----------------------------------------------------------------------------------------------------------------- |
 | `DefaultPAUAssembler`  | Deploys a full PAU stack (AccessControls, ALMProxy, RateLimits, Controller) and one or more `AdministeredAgent`s. |
 | `PAUAssembler`         | Deploys one or more PAU stacks **sharing a single `ALMProxy`**, cross-referenced by caller-supplied ids, plus allocator `AdministeredAgent`s. |
-| `DefaultNFATAssembler` | Deploys a PAU stack via `PAUAssembler` and an NFAT facility wired to the resulting shared `ALMProxy`.             |
+| `DefaultNFATPAUAssembler` | Deploys a PAU stack via `PAUAssembler` and an NFAT facility wired to the resulting shared `ALMProxy`.             |
 
 ## Documentation
 
@@ -29,7 +29,7 @@ See the [`docs/` index](./docs/README.md) for the full map. Per assembler:
 | ---------------------- | -------------------------------------------------------------- | ---------------------------------------------------------------- |
 | `DefaultPAUAssembler`  | [README](./docs/DefaultPAUAssembler/README.md)                 | [CHECKLIST](./docs/DefaultPAUAssembler/CHECKLIST.md)             |
 | `PAUAssembler`         | [README](./docs/PAUAssembler/README.md)                        | [CHECKLIST](./docs/PAUAssembler/CHECKLIST.md)                    |
-| `DefaultNFATAssembler` | [README](./docs/DefaultNFATAssembler/README.md)                | [CHECKLIST](./docs/DefaultNFATAssembler/CHECKLIST.md) _(draft)_  |
+| `DefaultNFATPAUAssembler` | [README](./docs/DefaultNFATPAUAssembler/README.md)                | [CHECKLIST](./docs/DefaultNFATPAUAssembler/CHECKLIST.md) _(draft)_  |
 
 Each README covers the deploy flow, role/permission matrix, configuration, and security notes; each checklist validates deploy arguments before sign-off.
 

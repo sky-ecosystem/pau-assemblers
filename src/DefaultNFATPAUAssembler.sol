@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity ^0.8.34;
 
-import { IDefaultNFATAssembler } from "./interfaces/IDefaultNFATAssembler.sol";
-import { IPAUAssembler }         from "./interfaces/IPAUAssembler.sol";
+import { IDefaultNFATPAUAssembler } from "./interfaces/IDefaultNFATPAUAssembler.sol";
+import { IPAUAssembler }            from "./interfaces/IPAUAssembler.sol";
 
-interface INFATFactoryLike {
+interface INFATFacilityFactoryLike {
 
     function deploy(
         string    memory name,
@@ -20,34 +20,34 @@ interface INFATFactoryLike {
 
 }
 
-contract DefaultNFATAssembler is IDefaultNFATAssembler {
+contract DefaultNFATPAUAssembler is IDefaultNFATPAUAssembler {
 
     /**********************************************************************************************/
     /*** Constants                                                                              ***/
     /**********************************************************************************************/
 
-    /// @inheritdoc IDefaultNFATAssembler
+    /// @inheritdoc IDefaultNFATPAUAssembler
     string public constant override VERSION = "1.0.0";
 
     /**********************************************************************************************/
     /*** Declarations                                                                           ***/
     /**********************************************************************************************/
 
-    /// @inheritdoc IDefaultNFATAssembler
-    address public immutable nfatFactory;
+    /// @inheritdoc IDefaultNFATPAUAssembler
+    address public immutable nfatFacilityFactory;
 
-    /// @inheritdoc IDefaultNFATAssembler
+    /// @inheritdoc IDefaultNFATPAUAssembler
     address public immutable pauAssembler;
 
     /**********************************************************************************************/
     /*** Constructor                                                                            ***/
     /**********************************************************************************************/
 
-    constructor(address nfatFactory_, address pauAssembler_) {
-        require(nfatFactory_  != address(0), ZeroNFATFactory());
-        require(pauAssembler_ != address(0), ZeroPAUAssembler());
+    constructor(address nfatFacilityFactory_, address pauAssembler_) {
+        require(nfatFacilityFactory_  != address(0), ZeroNFATFacilityFactory());
+        require(pauAssembler_         != address(0), ZeroPAUAssembler());
 
-        nfatFactory  = nfatFactory_;
+        nfatFacilityFactory = nfatFacilityFactory_;
         pauAssembler = pauAssembler_;
     }
 
@@ -55,10 +55,10 @@ contract DefaultNFATAssembler is IDefaultNFATAssembler {
     /*** External Interactive Functions                                                         ***/
     /**********************************************************************************************/
 
-    /// @inheritdoc IDefaultNFATAssembler
+    /// @inheritdoc IDefaultNFATPAUAssembler
     function deploy(
-        PAUAssemblerInput memory pauAssemblerInput,
-        NFATFactoryInput  memory nfatFactoryInput
+        PAUAssemblerConfigs       memory pauAssemblerConfigs,
+        NFATFacilityFactoryConfig memory nfatFacilityFactoryConfig
     )
         external
         override
@@ -73,19 +73,19 @@ contract DefaultNFATAssembler is IDefaultNFATAssembler {
     {
         // Step 1: Deploy and configure the full PAU stack via the PAUAssembler.
 
-        (proxy, controllers, accessControls, rateLimits, allocatorAgents) = IPAUAssembler(pauAssembler)
+        ( proxy, controllers, accessControls, rateLimits, allocatorAgents ) = IPAUAssembler(pauAssembler)
             .deploy(
-                pauAssemblerInput.controllerConfigs,
-                pauAssemblerInput.rateLimitConfigs,
-                pauAssemblerInput.accessControlConfigs,
-                pauAssemblerInput.allocatorAgentConfigs,
-                pauAssemblerInput.almProxyConfig
+                pauAssemblerConfigs.controllerConfigs,
+                pauAssemblerConfigs.rateLimitConfigs,
+                pauAssemblerConfigs.accessControlsConfigs,
+                pauAssemblerConfigs.allocatorAgentConfigs,
+                pauAssemblerConfigs.almProxyConfig
             );
 
         // Step 2: Deploy the NFAT facility wired to the shared ALMProxy.
         //         Split out into a helper to avoid stack-too-deep.
 
-        nfatFacility = _deployNFATFacility(nfatFactoryInput, proxy);
+        nfatFacility = _deployNFATFacility(nfatFacilityFactoryConfig, proxy);
 
         emit Deployment(
             proxy,
@@ -94,8 +94,8 @@ contract DefaultNFATAssembler is IDefaultNFATAssembler {
             accessControls,
             rateLimits,
             allocatorAgents,
-            pauAssemblerInput,
-            nfatFactoryInput
+            pauAssemblerConfigs,
+            nfatFacilityFactoryConfig
         );
     }
 
@@ -103,7 +103,7 @@ contract DefaultNFATAssembler is IDefaultNFATAssembler {
     /*** Internal Interactive Functions                                                         ***/
     /**********************************************************************************************/
 
-    function _deployNFATFacility(NFATFactoryInput memory nfatFactoryInput, address almProxy)
+    function _deployNFATFacility(NFATFacilityFactoryConfig memory nfatFacilityFactoryConfig, address almProxy)
         internal
         returns (address)
     {
@@ -113,17 +113,17 @@ contract DefaultNFATAssembler is IDefaultNFATAssembler {
 
         buds[0] = almProxy;
 
-        return INFATFactoryLike(nfatFactory)
+        return INFATFacilityFactoryLike(nfatFacilityFactory)
             .deploy(
-                nfatFactoryInput.name,
-                nfatFactoryInput.symbol,
-                nfatFactoryInput.baseURI,
-                nfatFactoryInput.gem,
+                nfatFacilityFactoryConfig.name,
+                nfatFacilityFactoryConfig.symbol,
+                nfatFacilityFactoryConfig.baseURI,
+                nfatFacilityFactoryConfig.gem,
                 almProxy,
-                nfatFactoryInput.identityNetwork,
-                nfatFactoryInput.wards,
+                nfatFacilityFactoryConfig.identityNetwork,
+                nfatFacilityFactoryConfig.wards,
                 buds,
-                nfatFactoryInput.cops
+                nfatFacilityFactoryConfig.cops
             );
     }
 

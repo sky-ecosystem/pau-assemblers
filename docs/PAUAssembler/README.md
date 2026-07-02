@@ -25,7 +25,7 @@ Both must be non-zero (`ZeroPAUFactory` / `ZeroAdministeredAgentFactory`). The P
 function deploy(
     ControllerConfig[]        memory controllerConfigs,
     RateLimitConfig[]         memory rateLimitConfigs,
-    AccessControlConfig[]     memory accessControlConfigs,
+    AccessControlsConfig[]    memory accessControlsConfigs,
     AdministeredAgentConfig[] memory allocatorAgentConfigs,
     ALMProxyConfig            memory almProxyConfig
 )
@@ -45,8 +45,8 @@ There is a single deploy path. It always deploys exactly **one** shared `ALMProx
 
 AccessControls and RateLimits are addressable within a single `deploy` call by a caller-supplied `bytes32 id`:
 
-- Each `AccessControlConfig.id` / `RateLimitConfig.id` must be **unique within its own set** (`DuplicateAccessControlsId` / `DuplicateRateLimitsId`).
-- A `ControllerConfig` names the `accessControlId` and `rateLimitId` it binds to; an `AdministeredAgentConfig` names the `accessControlId` it is granted the allocator role on. Unknown ids revert (`InvalidAccessControlsId` / `InvalidRateLimitsId`).
+- Each `AccessControlsConfig.id` / `RateLimitConfig.id` must be **unique within its own set** (`DuplicateAccessControlsId` / `DuplicateRateLimitsId`).
+- A `ControllerConfig` names the `accessControlsId` and `rateLimitId` it binds to; an `AdministeredAgentConfig` names the `accessControlsId` it is granted the allocator role on. Unknown ids revert (`InvalidAccessControlsId` / `InvalidRateLimitsId`).
 - The two id-spaces are **independent** — the same `bytes32` value may be used as both an AccessControls id and a RateLimits id without collision (they are namespaced internally).
 
 `id`s are resolved through **transient storage** (`tload`/`tstore`) scoped to the call. They have no meaning outside the transaction: they are not stored, not emitted as a mapping, and a deployed component is referenced only by the address returned in the result arrays / `Deployment` event.
@@ -71,7 +71,7 @@ Rate limits, proxy funding, and other runtime policy are **not** configured by t
 
 1. **Allocate return arrays** sized to each config array.
 2. **Deploy the shared ALMProxy** (administered by the assembler initially) and grant `DEFAULT_ADMIN_ROLE` on it from `almProxyConfig.admins`.
-3. **Deploy each AccessControls** — one per `accessControlConfigs` entry (administered by the assembler initially), index it by `id` (duplicate-checked), and grant `DEFAULT_ADMIN_ROLE` from its `admins`.
+3. **Deploy each AccessControls** — one per `accessControlsConfigs` entry (administered by the assembler initially), index it by `id` (duplicate-checked), and grant `DEFAULT_ADMIN_ROLE` from its `admins`.
 4. **Deploy each RateLimits** — one per `rateLimitConfigs` entry (administered by the assembler initially), index it by `id` (duplicate-checked), and grant `DEFAULT_ADMIN_ROLE` from its `admins`.
 5. **Deploy each Controller** — resolve its referenced AccessControls and RateLimits by `id` (revert on unknown), deploy the Controller wired to that pair and the shared proxy, register integrations (`updateIntegrations`, **skipped** when empty), then grant the Controller `CONTROLLER` on the **shared proxy** and on **its** RateLimits.
 6. **Deploy and configure each allocator agent** — deploy an `AdministeredAgent` (with the assembler as constructor admin), add `admins`, `actors`, `grantors`, `revokers` in order, grant it `ALLOCATOR_ROLE` on its referenced AccessControls (revert on unknown), then remove the assembler as an agent admin.
@@ -89,7 +89,7 @@ After a successful deploy:
 | **shared ALMProxy**     | `DEFAULT_ADMIN_ROLE`  | `almProxyConfig.admins`                                            |
 | **shared ALMProxy**     | `CONTROLLER`          | **every** deployed Controller                                     |
 | each AccessControls     | `DEFAULT_ADMIN_ROLE`  | that config's `admins`                                             |
-| each AccessControls     | `ALLOCATOR_ROLE`      | each agent whose `accessControlId` references it                  |
+| each AccessControls     | `ALLOCATOR_ROLE`      | each agent whose `accessControlsId` references it                  |
 | each RateLimits         | `DEFAULT_ADMIN_ROLE`  | that config's `admins`                                            |
 | each RateLimits         | `CONTROLLER`          | each Controller whose `rateLimitId` references it                 |
 | each AdministeredAgent  | admin                 | per-agent `allocatorAgentConfigs[i].admins`                       |
@@ -114,7 +114,7 @@ Post-deploy invariants checked by `PAUAssembler.t.sol`:
 | -------- | --------------------------------------------------------------------------------------------- |
 | `admins` | `DEFAULT_ADMIN_ROLE` holders on the shared ALMProxy. **Must be non-empty** (`NoDefaultAdmins`); every entry non-zero (`ZeroDefaultAdmin`). |
 
-### `AccessControlConfig[]` / `RateLimitConfig[]`
+### `AccessControlsConfig[]` / `RateLimitConfig[]`
 
 One entry per AccessControls / RateLimits deployed.
 
@@ -129,7 +129,7 @@ One entry per Controller. Each Controller is wired to the shared proxy and the r
 
 | Field             | Meaning                                                                                          |
 | ----------------- | ------------------------------------------------------------------------------------------------ |
-| `accessControlId` | `id` of the AccessControls to bind to (must exist — `InvalidAccessControlsId`).                  |
+| `accessControlsId` | `id` of the AccessControls to bind to (must exist — `InvalidAccessControlsId`).                  |
 | `rateLimitId`     | `id` of the RateLimits to bind to (must exist — `InvalidRateLimitsId`).                          |
 | `integrationIds`  | Passed to `Controller.updateIntegrations`; each id must be Beacon-registered. May be empty (call skipped). |
 
@@ -141,7 +141,7 @@ One entry per allocator agent. The array length determines how many `Administere
 
 | Field             | Meaning                                                                          |
 | ----------------- | -------------------------------------------------------------------------------- |
-| `accessControlId` | `id` of the AccessControls to grant `ALLOCATOR_ROLE` on (must exist — `InvalidAccessControlsId`). |
+| `accessControlsId` | `id` of the AccessControls to grant `ALLOCATOR_ROLE` on (must exist — `InvalidAccessControlsId`). |
 | `admins`          | Agent admins (must be non-empty per entry — `NoAgentAdmins`).                    |
 | `actors`          | May execute `call` / `batchCall` / `sendValue` on the agent.                     |
 | `grantors`        | May add actors on the agent (may be empty).                                      |
@@ -178,7 +178,7 @@ event Deployment(
     address[]                         allocatorAgents,
     ControllerConfig[]                controllerConfigs,
     RateLimitConfig[]                 rateLimitConfigs,
-    AccessControlConfig[]             accessControlConfigs,
+    AccessControlsConfig[]            accessControlsConfigs,
     AdministeredAgentConfig[]         allocatorAgentConfigs,
     ALMProxyConfig                    almProxyConfig
 );

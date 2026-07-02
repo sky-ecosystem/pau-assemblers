@@ -24,14 +24,14 @@ This table is the **source of truth for what may appear in each deploy argument*
 | Argument                                  | Allowed value(s) for current deployments                                                       |
 | ----------------------------------------- | --------------------------------------------------------------------------------------------- |
 | `almProxyConfig.admins`                   | One or more valid addresses. **(TBD: which subproxies / multisigs)**                           |
-| `accessControlConfigs[i].id`              | Unique within the AccessControls set; consistent with the ids referenced by controllers/agents. |
-| `accessControlConfigs[i].admins`          | One or more valid addresses per AccessControls. **(TBD)**                                      |
+| `accessControlsConfigs[i].id`              | Unique within the AccessControls set; consistent with the ids referenced by controllers/agents. |
+| `accessControlsConfigs[i].admins`          | One or more valid addresses per AccessControls. **(TBD)**                                      |
 | `rateLimitConfigs[i].id`                  | Unique within the RateLimits set; consistent with the ids referenced by controllers.          |
 | `rateLimitConfigs[i].admins`              | One or more valid addresses per RateLimits. **(TBD: e.g. `configurator` only)**               |
-| `controllerConfigs[i].accessControlId`    | An `id` present in `accessControlConfigs`.                                                     |
+| `controllerConfigs[i].accessControlsId`    | An `id` present in `accessControlsConfigs`.                                                     |
 | `controllerConfigs[i].rateLimitId`        | An `id` present in `rateLimitConfigs`.                                                         |
 | `controllerConfigs[i].integrationIds`     | Approved, Beacon-registered facets only; may be empty.                                         |
-| `allocatorAgentConfigs[i].accessControlId`| An `id` present in `accessControlConfigs`.                                                     |
+| `allocatorAgentConfigs[i].accessControlsId`| An `id` present in `accessControlsConfigs`.                                                     |
 | `allocatorAgentConfigs[i].admins`         | One or more valid addresses per agent. **(TBD)**                                              |
 | `allocatorAgentConfigs[i].actors`         | Pre-vetted multisigs (`m/n` **TBD** by Soter). May be empty.                                   |
 | `allocatorAgentConfigs[i].grantors`       | None (empty), unless policy allows. **(TBD)**                                                 |
@@ -52,10 +52,10 @@ Each `allocatorAgentConfigs` entry deploys one agent that receives `ALLOCATOR_RO
 - [ ] Every argument matches the **[Allowed configuration](#allowed-configuration)** table.
 - [ ] Every address is **checksummed** and verified against **chainlog** (the policy table says _which_ address is allowed; this confirms the value is the _correct_ one).
 - [ ] **Shared-proxy intent is confirmed.** All stacks in this call are intended to **share custody of a single ALMProxy**; any Controller deployed here can drive that proxy within its own rate limits. Stacks requiring fund isolation must be deployed in **separate** transactions / separate proxies.
-- [ ] **Id wiring is correct.** Every `controllerConfigs[i].accessControlId` / `rateLimitId` and every `allocatorAgentConfigs[i].accessControlId` references an `id` actually present in the corresponding config array, and each controller/agent is bound to the **intended** AccessControls/RateLimits.
-- [ ] `accessControlConfigs` ids and `rateLimitConfigs` ids are each unique within their set.
+- [ ] **Id wiring is correct.** Every `controllerConfigs[i].accessControlsId` / `rateLimitId` and every `allocatorAgentConfigs[i].accessControlsId` references an `id` actually present in the corresponding config array, and each controller/agent is bound to the **intended** AccessControls/RateLimits.
+- [ ] `accessControlsConfigs` ids and `rateLimitConfigs` ids are each unique within their set.
 - [ ] `integrationIds` are registered on the factory's Beacon **before** this deploy, and each maps to the intended, audited facet (facet address + selector wiring reviewed).
-- [ ] `controllerConfigs.length`, `accessControlConfigs.length`, `rateLimitConfigs.length`, and `allocatorAgentConfigs.length` match the intended topology for this deployment.
+- [ ] `controllerConfigs.length`, `accessControlsConfigs.length`, `rateLimitConfigs.length`, and `allocatorAgentConfigs.length` match the intended topology for this deployment.
 - [ ] For each `allocatorAgentConfigs[i]`, `admins`, `actors`, `grantors`, and `revokers` are reviewed against policy (including empty `grantors` / `revokers` / `actors` where permitted).
 
 > **Enforced on-chain (informational — not review items).** The deploy reverts on these, so they cannot be true of a successful deployment: empty `admins` on the proxy / any AccessControls / any RateLimits / any agent (`NoDefaultAdmins` / `NoAgentAdmins`); zero admin on proxy / AccessControls / RateLimits (`ZeroDefaultAdmin`); duplicate `id` within the AccessControls or RateLimits set (`DuplicateAccessControlsId` / `DuplicateRateLimitsId`); a controller/agent referencing an unknown `id` (`InvalidAccessControlsId` / `InvalidRateLimitsId`); zero factory dependency (`ZeroPAUFactory` / `ZeroAdministeredAgentFactory`); duplicate agent entries within a single config (`AccountAlreadyAdmin` / `AccountAlreadyActor` / `AccountAlreadyGrantor` / `AccountAlreadyRevoker`). Duplicate entries in a component's `admins` array are idempotent no-ops, not guarded.
