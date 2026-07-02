@@ -379,16 +379,16 @@ contract PAUAssembler_Integration_Tests is Test {
 
         // --- Shared ALMProxy: admins set, both controllers granted CONTROLLER, assembler revoked.
 
-        bytes32 proxyController = IALMProxyLike(proxy).CONTROLLER();
+        bytes32 proxyControllerRole = IALMProxyLike(proxy).CONTROLLER();
 
         assertEq(IAccessControlLike(proxy).hasRole(DEFAULT_ADMIN_ROLE, makeAddr("proxyAdmin")), true);
         assertEq(IAccessControlLike(proxy).hasRole(DEFAULT_ADMIN_ROLE, address(assembler)),     false);
-        assertEq(IAccessControlLike(proxy).hasRole(proxyController,    controllers[0]),         true);
-        assertEq(IAccessControlLike(proxy).hasRole(proxyController,    controllers[1]),         true);
+        assertEq(IAccessControlLike(proxy).hasRole(proxyControllerRole,    controllers[0]),         true);
+        assertEq(IAccessControlLike(proxy).hasRole(proxyControllerRole,    controllers[1]),         true);
 
         // Assembler holds no CONTROLLER on the shared proxy either (proxy/rateLimits are not
         // AccessControlEnumerable, so member counts are only asserted on AccessControls below).
-        assertEq(IAccessControlLike(proxy).hasRole(proxyController, address(assembler)), false);
+        assertEq(IAccessControlLike(proxy).hasRole(proxyControllerRole, address(assembler)), false);
 
         // --- AccessControls A: admin set, agent has allocator role, assembler revoked.
 
