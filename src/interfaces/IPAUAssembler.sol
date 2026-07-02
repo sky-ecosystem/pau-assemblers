@@ -95,11 +95,11 @@ interface IPAUAssembler {
     /**
      * @notice Configuration applied to an allocator AdministeredAgent after deployment.
      * @param  accessControlsId The `id` of the AccessControls this agent is granted the allocator
-     *                         role on.
-     * @param  admins          Addresses to configure as admins on the agent.
-     * @param  actors          Addresses to configure as actors on the agent.
-     * @param  grantors        Addresses to configure as grantors on the agent.
-     * @param  revokers        Addresses to configure as revokers on the agent.
+     *                          role on.
+     * @param  admins           Addresses to configure as admins on the agent.
+     * @param  actors           Addresses to configure as actors on the agent.
+     * @param  grantors         Addresses to configure as grantors on the agent.
+     * @param  revokers         Addresses to configure as revokers on the agent.
      */
     struct AdministeredAgentConfig {
         bytes32   accessControlsId;
