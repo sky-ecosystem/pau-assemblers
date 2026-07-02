@@ -312,7 +312,7 @@ contract PAUAssembler is IPAUAssembler {
         }
     }
 
-    function _getRateLimitId(bytes32 id) internal pure returns (bytes32) {
+    function _getRateLimitsId(bytes32 id) internal pure returns (bytes32) {
         return keccak256(abi.encode(bytes32("RATE_LIMIT"), id));
     }
 
