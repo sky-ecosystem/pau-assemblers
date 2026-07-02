@@ -353,7 +353,7 @@ contract PAUAssembler_Integration_Tests is Test {
         //     PAU_FACTORY order: proxy, AccessControls A/B, RateLimits A/B, controllers 0/1.
 
         uint256 pauFactoryNonce = vm.getNonce(PAU_FACTORY);
-        uint256 aNonce = vm.getNonce(ADMINISTERED_AGENT_FACTORY);
+        uint256 agentFactoryNonce = vm.getNonce(ADMINISTERED_AGENT_FACTORY);
 
         // --- Deploy.
 
