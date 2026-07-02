@@ -367,14 +367,15 @@ contract PAUAssembler_Integration_Tests is Test {
 
         // --- Addresses (inlined to keep stack shallow; this contract is built without via-IR).
 
-        assertEq(proxy,              vm.computeCreateAddress(PAU_FACTORY, fNonce));
-        assertEq(accessControls[0],  vm.computeCreateAddress(PAU_FACTORY, fNonce + 1));
-        assertEq(accessControls[1],  vm.computeCreateAddress(PAU_FACTORY, fNonce + 2));
-        assertEq(rateLimits[0],      vm.computeCreateAddress(PAU_FACTORY, fNonce + 3));
-        assertEq(rateLimits[1],      vm.computeCreateAddress(PAU_FACTORY, fNonce + 4));
-        assertEq(controllers[0],     vm.computeCreateAddress(PAU_FACTORY, fNonce + 5));
-        assertEq(controllers[1],     vm.computeCreateAddress(PAU_FACTORY, fNonce + 6));
-        assertEq(allocatorAgents[0], vm.computeCreateAddress(ADMINISTERED_AGENT_FACTORY, aNonce));
+        assertEq(proxy,              vm.computeCreateAddress(PAU_FACTORY, pauFactoryNonce));
+        assertEq(accessControls[0],  vm.computeCreateAddress(PAU_FACTORY, pauFactoryNonce + 1));
+        assertEq(accessControls[1],  vm.computeCreateAddress(PAU_FACTORY, pauFactoryNonce + 2));
+        assertEq(rateLimits[0],      vm.computeCreateAddress(PAU_FACTORY, pauFactoryNonce + 3));
+        assertEq(rateLimits[1],      vm.computeCreateAddress(PAU_FACTORY, pauFactoryNonce + 4));
+        assertEq(controllers[0],     vm.computeCreateAddress(PAU_FACTORY, pauFactoryNonce + 5));
+        assertEq(controllers[1],     vm.computeCreateAddress(PAU_FACTORY, pauFactoryNonce + 6));
+
+        assertEq(allocatorAgents[0], vm.computeCreateAddress(ADMINISTERED_AGENT_FACTORY, agentFactoryNonce));
 
         // --- Shared ALMProxy: admins set, both controllers granted CONTROLLER, assembler revoked.
 

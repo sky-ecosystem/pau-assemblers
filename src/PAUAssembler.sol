@@ -142,7 +142,7 @@ contract PAUAssembler is IPAUAssembler {
 
             accessControls[i] = accessControls_;
 
-            bytes32 key = _getAccessControlId(config.id);
+            bytes32 key = _getAccessControlsId(config.id);
 
             require(_tloadAddress(key) == address(0), DuplicateAccessControlsId(config.id));
 
@@ -160,7 +160,7 @@ contract PAUAssembler is IPAUAssembler {
 
             rateLimits[i] = rateLimits_;
 
-            bytes32 key = _getRateLimitId(config.id);
+            bytes32 key = _getRateLimitsId(config.id);
 
             require(_tloadAddress(key) == address(0), DuplicateRateLimitsId(config.id));
 
@@ -175,11 +175,11 @@ contract PAUAssembler is IPAUAssembler {
         for (uint256 i = 0; i < controllerConfigs.length; i++) {
             ControllerConfig memory config = controllerConfigs[i];
 
-            address rateLimits_     = _tloadAddress(_getRateLimitId(config.rateLimitsId));
-            address accessControls_ = _tloadAddress(_getAccessControlId(config.accessControlsId));
+            address rateLimits_     = _tloadAddress(_getRateLimitsId(config.rateLimitsId));
+            address accessControls_ = _tloadAddress(_getAccessControlsId(config.accessControlsId));
 
             require(rateLimits_ != address(0), InvalidRateLimitsId(config.rateLimitsId));
-            
+
             require(
                 accessControls_ != address(0),
                 InvalidAccessControlsId(config.accessControlsId)
@@ -218,7 +218,7 @@ contract PAUAssembler is IPAUAssembler {
 
             _configureAgent(agent, config);
 
-            address accessControls_ = _tloadAddress(_getAccessControlId(config.accessControlsId));
+            address accessControls_ = _tloadAddress(_getAccessControlsId(config.accessControlsId));
 
             require(
                 accessControls_ != address(0),
@@ -243,11 +243,11 @@ contract PAUAssembler is IPAUAssembler {
         //         otherwise push this function past the stack limit (no via-IR).
 
         for (uint256 i = 0; i < accessControlsConfigs.length; i++) {
-            _tstoreAddress(_getAccessControlId(accessControlsConfigs[i].id), address(0));
+            _tstoreAddress(_getAccessControlsId(accessControlsConfigs[i].id), address(0));
         }
 
         for (uint256 i = 0; i < rateLimitsConfigs.length; i++) {
-            _tstoreAddress(_getRateLimitId(rateLimitsConfigs[i].id), address(0));
+            _tstoreAddress(_getRateLimitsId(rateLimitsConfigs[i].id), address(0));
         }
 
         emit Deployment(
