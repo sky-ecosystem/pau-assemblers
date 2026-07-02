@@ -103,7 +103,7 @@ contract DefaultNFATPAUAssembler is IDefaultNFATPAUAssembler {
     /*** Internal Interactive Functions                                                         ***/
     /**********************************************************************************************/
 
-    function _deployNFATFacility(NFATFacilityFactoryConfig memory nfatFacilityFactoryConfig, address almProxy)
+    function _deployNFATFacility(NFATFacilityFactoryConfig memory config, address almProxy)
         internal
         returns (address)
     {
@@ -115,15 +115,15 @@ contract DefaultNFATPAUAssembler is IDefaultNFATPAUAssembler {
 
         return INFATFacilityFactoryLike(nfatFacilityFactory)
             .deploy(
-                nfatFacilityFactoryConfig.name,
-                nfatFacilityFactoryConfig.symbol,
-                nfatFacilityFactoryConfig.baseURI,
-                nfatFacilityFactoryConfig.gem,
+                config.name,
+                config.symbol,
+                config.baseURI,
+                config.gem,
                 almProxy,
-                nfatFacilityFactoryConfig.identityNetwork,
-                nfatFacilityFactoryConfig.wards,
+                config.identityNetwork,
+                config.wards,
                 buds,
-                nfatFacilityFactoryConfig.cops
+                config.cops
             );
     }
 
