@@ -178,8 +178,12 @@ contract PAUAssembler is IPAUAssembler {
             address rateLimits_     = _tloadAddress(_getRateLimitId(config.rateLimitsId));
             address accessControls_ = _tloadAddress(_getAccessControlId(config.accessControlsId));
 
-            require(rateLimits_     != address(0), InvalidRateLimitsId(config.rateLimitsId));
-            require(accessControls_ != address(0), InvalidAccessControlsId(config.accessControlsId));
+            require(rateLimits_ != address(0), InvalidRateLimitsId(config.rateLimitsId));
+            
+            require(
+                accessControls_ != address(0),
+                InvalidAccessControlsId(config.accessControlsId)
+            );
 
             address controller =
                 IPAUFactoryLike(pauFactory).deployController(accessControls_, proxy, rateLimits_);
