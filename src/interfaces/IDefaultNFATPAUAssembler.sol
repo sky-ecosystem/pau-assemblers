@@ -5,9 +5,9 @@ import { IPAUAssembler } from "./IPAUAssembler.sol";
 
 /**
  * @title  IDefaultNFATPAUAssembler
- * @notice External interface for the {DefaultNFATPAUAssembler}, a one-shot helper that deploys a full
- *         PAU stack via the {PAUAssembler} and then deploys an NFAT facility wired to the resulting
- *         shared ALMProxy, in a single transaction.
+ * @notice External interface for the {DefaultNFATPAUAssembler}, a one-shot helper that deploys a
+ *         full PAU stack via the {PAUAssembler} and then deploys an NFAT facility wired to the
+ *         resulting shared ALMProxy, in a single transaction.
  * @dev    All deployed contracts are returned as plain addresses; callers cast them to the relevant
  *         component interfaces as needed. The NFAT facility's recipient and sole bud are both fixed
  *         to the deployed ALMProxy.
