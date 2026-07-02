@@ -216,7 +216,10 @@ contract PAUAssembler is IPAUAssembler {
 
             address accessControls_ = _tloadAddress(_getAccessControlId(config.accessControlsId));
 
-            require(accessControls_ != address(0), InvalidAccessControlsId(config.accessControlsId));
+            require(
+                accessControls_ != address(0),
+                InvalidAccessControlsId(config.accessControlsId)
+            );
 
             IAccessControlLike(accessControls_).grantRole(_ALLOCATOR_ROLE, agent);
 
