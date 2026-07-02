@@ -9,7 +9,7 @@
 
 ## Overview
 
-A collection of one-shot **assembler contracts for the Sky ecosystem**. Each assembler uses factories to deploy and fully wire a standardized on-chain systems in a single transaction, hands administrative rights to caller-supplied admins as defined by its configuration structs, and renounces every role it held during setup — so the assembler is trustless once the call returns.
+A collection of one-shot **assembler contracts for the Sky ecosystem**. Each assembler uses factories to deploy and fully wire standardized on-chain systems in a single transaction, hands administrative rights to caller-supplied admins as defined by its configuration structs, and renounces every role it held during setup — so the assembler is trustless once the call returns.
 
 The first assembler builds on the [PAU](https://github.com/sky-ecosystem/diamond-pau) stack, giving a reviewable, deterministic path to deploying Prime PAUs as more primes enter the ecosystem and replacing ad-hoc manual deployments.
 
