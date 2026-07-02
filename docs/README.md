@@ -5,7 +5,7 @@ Per-assembler mechanics — deploy flow, resulting role/permission layout, confi
 | Assembler              | What it deploys                                                                                  | Docs                                                  | Reviewer checklist                                              |
 | ---------------------- | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------- | -------------------------------------------------------------- |
 | `DefaultPAUAssembler`  | One PAU stack (AccessControls, ALMProxy, RateLimits, Controller) + allocator `AdministeredAgent`s. | [README](./DefaultPAUAssembler/README.md)            | [CHECKLIST](./DefaultPAUAssembler/CHECKLIST.md)               |
-| `PAUAssembler`         | A  multi-controller / multi-rate-limit / multi-access-control stack **sharing a single `ALMProxy`**, cross-referenced by caller-supplied ids. | [README](./PAUAssembler/README.md)                   | [CHECKLIST](./PAUAssembler/CHECKLIST.md)                     |
+| `PAUAssembler`         | A multi-controller / multi-rate-limit / multi-access-control stack **sharing a single `ALMProxy`**, cross-referenced by caller-supplied ids. | [README](./PAUAssembler/README.md)                   | [CHECKLIST](./PAUAssembler/CHECKLIST.md)                     |
 | `DefaultNFATPAUAssembler` | A PAU stack via `PAUAssembler` + an NFAT facility wired to the resulting shared `ALMProxy`.       | [README](./DefaultNFATPAUAssembler/README.md)           | [CHECKLIST](./DefaultNFATPAUAssembler/CHECKLIST.md) _(draft)_   |
 
 ## Relationships
