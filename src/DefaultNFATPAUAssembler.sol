@@ -73,7 +73,13 @@ contract DefaultNFATPAUAssembler is IDefaultNFATPAUAssembler {
     {
         // Step 1: Deploy and configure the full PAU stack via the PAUAssembler.
 
-        ( proxy, controllers, accessControls, rateLimits, allocatorAgents ) = IPAUAssembler(pauAssembler)
+        (
+            proxy,
+            controllers,
+            accessControls,
+            rateLimits,
+            allocatorAgents
+        ) = IPAUAssembler(pauAssembler)
             .deploy(
                 pauAssemblerConfigs.controllerConfigs,
                 pauAssemblerConfigs.rateLimitsConfigs,
