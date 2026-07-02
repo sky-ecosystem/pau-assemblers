@@ -5,10 +5,10 @@ pragma solidity ^0.8.34;
  * @title  IPAUAssembler
  * @notice External interface for the {PAUAssembler}, a one-shot helper that deploys and configures
  *         one or more PAU stacks sharing a single ALMProxy, in a single transaction. It deploys the
- *         shared ALMProxy, a set of AccessControls and RateLimits (each addressable by a caller
- *         supplied id), then wires each Controller to a referenced AccessControls/RateLimits pair,
- *         syncs its integrations, and grants each allocator AdministeredAgent the allocator role on
- *         its referenced AccessControls.
+ *         shared ALMProxy, a set of AccessControls and RateLimits (each addressable by a
+ *         caller-supplied id), then wires each Controller to a referenced AccessControls/RateLimits
+ *         pair, syncs its integrations, and grants each allocator AdministeredAgent the allocator
+ *         role on its referenced AccessControls.
  * @dev    All deployed contracts are returned as plain addresses; callers cast them to the relevant
  *         component interfaces as needed. The `id` fields are scoped to a single `deploy` call and
  *         are only used to cross-reference components within that call.
