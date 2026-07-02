@@ -316,7 +316,7 @@ contract PAUAssembler is IPAUAssembler {
         return keccak256(abi.encode(bytes32("RATE_LIMIT"), id));
     }
 
-    function _getAccessControlId(bytes32 id) internal pure returns (bytes32) {
+    function _getAccessControlsId(bytes32 id) internal pure returns (bytes32) {
         return keccak256(abi.encode(bytes32("ACCESS_CONTROL"), id));
     }
 
