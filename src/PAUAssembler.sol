@@ -190,8 +190,15 @@ contract PAUAssembler is IPAUAssembler {
                 IControllerLike(controller).updateIntegrations(config.integrationIds);
             }
 
-            IAccessControlLike(proxy).grantRole(IALMProxyLike(proxy).CONTROLLER(),               controller);
-            IAccessControlLike(rateLimits_).grantRole(IRateLimitsLike(rateLimits_).CONTROLLER(), controller);
+            IAccessControlLike(proxy).grantRole(
+                IALMProxyLike(proxy).CONTROLLER(),
+                controller
+            );
+
+            IAccessControlLike(rateLimits_).grantRole(
+                IRateLimitsLike(rateLimits_).CONTROLLER(),
+                controller
+            );
         }
 
         // Step 6: Deploy and configure all allocator agents, granting each the allocator role on
