@@ -15,12 +15,6 @@ interface IAccessControlLike {
 
 }
 
-interface IALMProxyLike {
-
-    function CONTROLLER() external view returns (bytes32);
-
-}
-
 contract DefaultNFATPAUAssembler_Integration_Tests is Test {
 
     address internal constant ADMINISTERED_AGENT_FACTORY = 0x2968c3b5478cF93B70aB1e24255d4EDBBd27a089;
@@ -88,13 +82,13 @@ contract DefaultNFATPAUAssembler_Integration_Tests is Test {
         accessControlsConfigs[0].admins    = new address[](1);
         accessControlsConfigs[0].admins[0] = makeAddr("acAdmin");
 
-        IPAUAssembler.RateLimitConfig[] memory rateLimitConfigs = new IPAUAssembler.RateLimitConfig[](1);
-        rateLimitConfigs[0].id        = RATE_LIMITS_ID;
-        rateLimitConfigs[0].admins    = new address[](1);
-        rateLimitConfigs[0].admins[0] = makeAddr("rlAdmin");
+        IPAUAssembler.RateLimitsConfig[] memory rateLimitsConfigs = new IPAUAssembler.RateLimitsConfig[](1);
+        rateLimitsConfigs[0].id        = RATE_LIMITS_ID;
+        rateLimitsConfigs[0].admins    = new address[](1);
+        rateLimitsConfigs[0].admins[0] = makeAddr("rlAdmin");
 
         IPAUAssembler.ControllerConfig[] memory controllerConfigs = new IPAUAssembler.ControllerConfig[](1);
-        controllerConfigs[0].rateLimitId      = RATE_LIMITS_ID;
+        controllerConfigs[0].rateLimitsId     = RATE_LIMITS_ID;
         controllerConfigs[0].accessControlsId = ACCESS_CONTROLS_ID;
 
         IPAUAssembler.AdministeredAgentConfig[] memory agentConfigs = new IPAUAssembler.AdministeredAgentConfig[](1);
@@ -107,7 +101,7 @@ contract DefaultNFATPAUAssembler_Integration_Tests is Test {
         proxyConfig.admins[0] = makeAddr("proxyAdmin");
 
         input.controllerConfigs     = controllerConfigs;
-        input.rateLimitConfigs      = rateLimitConfigs;
+        input.rateLimitsConfigs     = rateLimitsConfigs;
         input.accessControlsConfigs = accessControlsConfigs;
         input.allocatorAgentConfigs = agentConfigs;
         input.almProxyConfig        = proxyConfig;
@@ -178,8 +172,8 @@ contract DefaultNFATPAUAssembler_Integration_Tests is Test {
         assertEq(allocatorAgents.length, 1);
 
         // The assembler must hold no roles on the shared proxy after deploy.
-        assertEq(IAccessControlLike(proxy).hasRole(DEFAULT_ADMIN_ROLE, address(pauAssembler)), false);
-        assertEq(IAccessControlLike(proxy).hasRole(DEFAULT_ADMIN_ROLE, address(assembler)),    false);
+        assertEq(IAccessControlLike(proxy).hasRole(DEFAULT_ADMIN_ROLE, address(pauAssembler)),  false);
+        assertEq(IAccessControlLike(proxy).hasRole(DEFAULT_ADMIN_ROLE, address(assembler)),     false);
         assertEq(IAccessControlLike(proxy).hasRole(DEFAULT_ADMIN_ROLE, makeAddr("proxyAdmin")), true);
     }
 

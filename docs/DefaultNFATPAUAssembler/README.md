@@ -11,7 +11,7 @@ Implementation version: `1.0.0` (`VERSION`).
 | `pauAssembler_`      | `IPAUAssembler`  | Deploys and wires the full PAU stack (shared proxy + stacks + agents). |
 | `nfatFacilityFactory_`       | `INFATFacilityFactoryLike` | Deploys the NFAT facility.                                          |
 
-Both must be non-zero (`ZeroPAUAssembler` / `ZeroNFATFacilityFactory`). For the PAU stack's own dependencies, configuration semantics, and permission layout, see the [`PAUAssembler` documentation](../PAUAssembler/README.md) — this assembler forwards its `PAUAssemblerConfigs` to `PAUAssembler.deploy` verbatim.
+Both must be non-zero (`ZeroPAUAssembler` / `ZeroNFATFacilityFactory`). For the PAU stack's own dependencies, configuration semantics, and permission layout, see the [`PAUAssembler` documentation](../PAUAssembler/README.md) — this assembler forwards its `PAUAssemblerInput` to `PAUAssembler.deploy` verbatim.
 
 > **Auditor note — dependency status.** The assembler depends on `PAUAssembler` only through the `IPAUAssembler` interface and on the NFAT factory only through the inline `INFATFacilityFactoryLike` adapter; the production bytecode imports neither implementation. The NFAT factory is not deployed on mainnet, so the integration test runs the **real** `PAUAssembler` against the forked `PAUFactory` and exercises the NFAT leg through a recording mock factory.
 
@@ -19,8 +19,8 @@ Both must be non-zero (`ZeroPAUAssembler` / `ZeroNFATFacilityFactory`). For the 
 
 ```solidity
 function deploy(
-    PAUAssemblerConfigs        memory pauAssemblerConfigs,
-    NFATFacilityFactoryConfig  memory nfatFacilityFactoryConfig
+    PAUAssemblerInput         memory pauAssemblerInput,
+    NFATFacilityFactoryInput  memory nfatFacilityFactoryInput
 )
     external
     returns (
@@ -35,8 +35,8 @@ function deploy(
 
 ## Deploy flow
 
-1. **Deploy the PAU stack** — forward `pauAssemblerConfigs` to `PAUAssembler.deploy`, returning the shared `proxy`, `controllers`, `accessControls`, `rateLimits`, and `allocatorAgents`. All PAU role wiring and the assembler's renunciation happen inside this call.
-2. **Deploy the NFAT facility** — call the NFAT factory wired to the shared proxy. The facility's **`recipient` and sole `bud` are both fixed to the deployed `ALMProxy`**; neither is caller-supplied. `wards` and `cops` are forwarded from `nfatFacilityFactoryConfig`.
+1. **Deploy the PAU stack** — forward `pauAssemblerInput` to `PAUAssembler.deploy`, returning the shared `proxy`, `controllers`, `accessControls`, `rateLimits`, and `allocatorAgents`. All PAU role wiring and the assembler's renunciation happen inside this call.
+2. **Deploy the NFAT facility** — call the NFAT factory wired to the shared proxy. The facility's **`recipient` and sole `bud` are both fixed to the deployed `ALMProxy`**; neither is caller-supplied. `wards` and `cops` are forwarded from `nfatFactoryInput`.
 
 A `Deployment` event is emitted with every deployed address and the full configuration.
 
@@ -58,19 +58,19 @@ Post-deploy invariants checked by `DefaultNFATPAUAssembler.t.sol`:
 
 ## Configuration reference
 
-### `PAUAssemblerConfigs`
+### `PAUAssemblerInput`
 
 The full set of `PAUAssembler` configuration arrays, forwarded verbatim. See the [`PAUAssembler` configuration reference](../PAUAssembler/README.md#configuration-reference).
 
 | Field                   | Forwarded to                              |
 | ----------------------- | ----------------------------------------- |
-| `controllerConfigs`     | `PAUAssembler.deploy` `controllerConfigs`     |
-| `rateLimitConfigs`      | `PAUAssembler.deploy` `rateLimitConfigs`      |
-| `accessControlsConfigs`  | `PAUAssembler.deploy` `accessControlsConfigs`  |
-| `allocatorAgentConfigs` | `PAUAssembler.deploy` `allocatorAgentConfigs` |
-| `almProxyConfig`        | `PAUAssembler.deploy` `almProxyConfig`        |
+| `controllerConfigs`     | `PAUAssembler.deploy`  `controllerConfigs`     |
+| `rateLimitsConfigs`      | `PAUAssembler.deploy` `rateLimitsConfigs`     |
+| `accessControlConfigs`  | `PAUAssembler.deploy`  `accessControlConfigs`  |
+| `allocatorAgentConfigs` | `PAUAssembler.deploy`  `allocatorAgentConfigs` |
+| `almProxyConfig`        | `PAUAssembler.deploy`  `almProxyConfig`        |
 
-### `NFATFacilityFactoryConfig`
+### `NFATFacilityFactoryInput`
 
 Parameters forwarded to the NFAT factory. `recipient` and `buds` are **not** supplied here — both are fixed to the deployed proxy.
 
@@ -86,7 +86,7 @@ Parameters forwarded to the NFAT factory. `recipient` and `buds` are **not** sup
 
 ## Preconditions & behavior
 
-- **PAU preconditions apply in full** — the forwarded `pauAssemblerConfigs` is subject to every `PAUAssembler` revert (`NoDefaultAdmins`, `ZeroDefaultAdmin`, `Duplicate…Id`, `Invalid…Id`, `NoAgentAdmins`, …). See the [`PAUAssembler` preconditions](../PAUAssembler/README.md#preconditions--behavior).
+- **PAU preconditions apply in full** — the forwarded `pauAssemblerInput` is subject to every `PAUAssembler` revert (`NoDefaultAdmins`, `ZeroDefaultAdmin`, `Duplicate…Id`, `Invalid…Id`, `NoAgentAdmins`, …). See the [`PAUAssembler` preconditions](../PAUAssembler/README.md#preconditions--behavior).
 - **Facility wiring is fixed** — `recipient` and the sole `bud` are always the deployed proxy; callers cannot override them.
 - **`wards` / `cops` validation** is owned by the NFAT factory, not this assembler.
 
@@ -106,7 +106,7 @@ event Deployment(
     address[]                 accessControls,
     address[]                 rateLimits,
     address[]                 allocatorAgents,
-    PAUAssemblerConfigs       pauAssemblerConfigs,
-    NFATFacilityFactoryConfig nfatFacilityFactoryConfig
+    PAUAssemblerInput         pauAssemblerInput,
+    NFATFacilityFactoryInput  nfatFacilityFactoryInput
 );
 ```

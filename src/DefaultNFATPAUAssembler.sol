@@ -44,11 +44,11 @@ contract DefaultNFATPAUAssembler is IDefaultNFATPAUAssembler {
     /**********************************************************************************************/
 
     constructor(address nfatFacilityFactory_, address pauAssembler_) {
-        require(nfatFacilityFactory_  != address(0), ZeroNFATFacilityFactory());
-        require(pauAssembler_         != address(0), ZeroPAUAssembler());
+        require(nfatFacilityFactory_ != address(0), ZeroNFATFacilityFactory());
+        require(pauAssembler_        != address(0), ZeroPAUAssembler());
 
         nfatFacilityFactory = nfatFacilityFactory_;
-        pauAssembler = pauAssembler_;
+        pauAssembler        = pauAssembler_;
     }
 
     /**********************************************************************************************/
@@ -76,7 +76,7 @@ contract DefaultNFATPAUAssembler is IDefaultNFATPAUAssembler {
         ( proxy, controllers, accessControls, rateLimits, allocatorAgents ) = IPAUAssembler(pauAssembler)
             .deploy(
                 pauAssemblerConfigs.controllerConfigs,
-                pauAssemblerConfigs.rateLimitConfigs,
+                pauAssemblerConfigs.rateLimitsConfigs,
                 pauAssemblerConfigs.accessControlsConfigs,
                 pauAssemblerConfigs.allocatorAgentConfigs,
                 pauAssemblerConfigs.almProxyConfig

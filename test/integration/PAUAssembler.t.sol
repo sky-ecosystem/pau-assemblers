@@ -7,6 +7,24 @@ import { IPAUAssembler } from "../../src/interfaces/IPAUAssembler.sol";
 
 import { PAUAssembler } from "../../src/PAUAssembler.sol";
 
+interface IALMProxyLike {
+
+    function CONTROLLER() external view returns (bytes32);
+
+}
+
+interface IAccessControlEnumerableLike {
+
+    function getRoleMemberCount(bytes32 role) external view returns (uint256);
+
+}
+
+interface IAccessControlLike {
+
+    function hasRole(bytes32 role, address account) external view returns (bool);
+
+}
+
 interface IAdministeredAgentLike {
 
     function actorCount() external view returns (uint256);
@@ -24,26 +42,6 @@ interface IAdministeredAgentLike {
     function grantorCount() external view returns (uint256);
 
     function revokerCount() external view returns (uint256);
-
-}
-
-interface IAccessControlLike {
-
-    function getRoleAdmin(bytes32 role) external view returns (bytes32);
-
-    function hasRole(bytes32 role, address account) external view returns (bool);
-
-}
-
-interface IAccessControlEnumerableLike {
-
-    function getRoleMemberCount(bytes32 role) external view returns (uint256);
-
-}
-
-interface IALMProxyLike {
-
-    function CONTROLLER() external view returns (bytes32);
 
 }
 
@@ -131,7 +129,7 @@ contract PAUAssembler_Integration_Tests is Test {
 
     function _getOneAdminRateLimitsConfig(bytes32 id, string memory adminLabel)
         internal
-        returns (IPAUAssembler.RateLimitConfig memory config)
+        returns (IPAUAssembler.RateLimitsConfig memory config)
     {
         config.id        = id;
         config.admins    = new address[](1);
@@ -173,7 +171,7 @@ contract PAUAssembler_Integration_Tests is Test {
         vm.expectRevert(IPAUAssembler.ZeroDefaultAdmin.selector);
         assembler.deploy(
             new IPAUAssembler.ControllerConfig[](0),
-            new IPAUAssembler.RateLimitConfig[](0),
+            new IPAUAssembler.RateLimitsConfig[](0),
             new IPAUAssembler.AccessControlsConfig[](0),
             new IPAUAssembler.AdministeredAgentConfig[](0),
             proxyConfig
@@ -186,7 +184,7 @@ contract PAUAssembler_Integration_Tests is Test {
         vm.expectRevert(IPAUAssembler.NoDefaultAdmins.selector);
         assembler.deploy(
             new IPAUAssembler.ControllerConfig[](0),
-            new IPAUAssembler.RateLimitConfig[](0),
+            new IPAUAssembler.RateLimitsConfig[](0),
             new IPAUAssembler.AccessControlsConfig[](0),
             new IPAUAssembler.AdministeredAgentConfig[](0),
             proxyConfig
@@ -201,7 +199,7 @@ contract PAUAssembler_Integration_Tests is Test {
         vm.expectRevert(abi.encodeWithSelector(IPAUAssembler.DuplicateAccessControlsId.selector, ACCESS_CONTROLS_ID_A));
         assembler.deploy(
             new IPAUAssembler.ControllerConfig[](0),
-            new IPAUAssembler.RateLimitConfig[](0),
+            new IPAUAssembler.RateLimitsConfig[](0),
             accessControlsConfigs,
             new IPAUAssembler.AdministeredAgentConfig[](0),
             _proxyConfig()
@@ -209,14 +207,14 @@ contract PAUAssembler_Integration_Tests is Test {
     }
 
     function test_deploy_duplicateRateLimitsId() external {
-        IPAUAssembler.RateLimitConfig[] memory rateLimitConfigs = new IPAUAssembler.RateLimitConfig[](2);
-        rateLimitConfigs[0] = _getOneAdminRateLimitsConfig(RATE_LIMITS_ID_A, "rlAdmin0");
-        rateLimitConfigs[1] = _getOneAdminRateLimitsConfig(RATE_LIMITS_ID_A, "rlAdmin1");
+        IPAUAssembler.RateLimitsConfig[] memory rateLimitsConfigs = new IPAUAssembler.RateLimitsConfig[](2);
+        rateLimitsConfigs[0] = _getOneAdminRateLimitsConfig(RATE_LIMITS_ID_A, "rlAdmin0");
+        rateLimitsConfigs[1] = _getOneAdminRateLimitsConfig(RATE_LIMITS_ID_A, "rlAdmin1");
 
         vm.expectRevert(abi.encodeWithSelector(IPAUAssembler.DuplicateRateLimitsId.selector, RATE_LIMITS_ID_A));
         assembler.deploy(
             new IPAUAssembler.ControllerConfig[](0),
-            rateLimitConfigs,
+            rateLimitsConfigs,
             new IPAUAssembler.AccessControlsConfig[](0),
             new IPAUAssembler.AdministeredAgentConfig[](0),
             _proxyConfig()
@@ -230,14 +228,14 @@ contract PAUAssembler_Integration_Tests is Test {
         IPAUAssembler.ControllerConfig[] memory controllerConfigs = new IPAUAssembler.ControllerConfig[](1);
         controllerConfigs[0] = IPAUAssembler.ControllerConfig({
             integrationIds   : new bytes32[](0),
-            rateLimitId      : RATE_LIMITS_ID_A, // never deployed
+            rateLimitsId     : RATE_LIMITS_ID_A, // never deployed
             accessControlsId : ACCESS_CONTROLS_ID_A
         });
 
         vm.expectRevert(abi.encodeWithSelector(IPAUAssembler.InvalidRateLimitsId.selector, RATE_LIMITS_ID_A));
         assembler.deploy(
             controllerConfigs,
-            new IPAUAssembler.RateLimitConfig[](0),
+            new IPAUAssembler.RateLimitsConfig[](0),
             accessControlsConfigs,
             new IPAUAssembler.AdministeredAgentConfig[](0),
             _proxyConfig()
@@ -245,20 +243,20 @@ contract PAUAssembler_Integration_Tests is Test {
     }
 
     function test_deploy_invalidAccessControlsId_controller() external {
-        IPAUAssembler.RateLimitConfig[] memory rateLimitConfigs = new IPAUAssembler.RateLimitConfig[](1);
-        rateLimitConfigs[0] = _getOneAdminRateLimitsConfig(RATE_LIMITS_ID_A, "rlAdmin0");
+        IPAUAssembler.RateLimitsConfig[] memory rateLimitsConfigs = new IPAUAssembler.RateLimitsConfig[](1);
+        rateLimitsConfigs[0] = _getOneAdminRateLimitsConfig(RATE_LIMITS_ID_A, "rlAdmin0");
 
         IPAUAssembler.ControllerConfig[] memory controllerConfigs = new IPAUAssembler.ControllerConfig[](1);
         controllerConfigs[0] = IPAUAssembler.ControllerConfig({
             integrationIds   : new bytes32[](0),
-            rateLimitId      : RATE_LIMITS_ID_A,
+            rateLimitsId     : RATE_LIMITS_ID_A,
             accessControlsId : ACCESS_CONTROLS_ID_A // never deployed
         });
 
         vm.expectRevert(abi.encodeWithSelector(IPAUAssembler.InvalidAccessControlsId.selector, ACCESS_CONTROLS_ID_A));
         assembler.deploy(
             controllerConfigs,
-            rateLimitConfigs,
+            rateLimitsConfigs,
             new IPAUAssembler.AccessControlsConfig[](0),
             new IPAUAssembler.AdministeredAgentConfig[](0),
             _proxyConfig()
@@ -274,7 +272,7 @@ contract PAUAssembler_Integration_Tests is Test {
         vm.expectRevert(abi.encodeWithSelector(IPAUAssembler.InvalidAccessControlsId.selector, ACCESS_CONTROLS_ID_A));
         assembler.deploy(
             new IPAUAssembler.ControllerConfig[](0),
-            new IPAUAssembler.RateLimitConfig[](0),
+            new IPAUAssembler.RateLimitsConfig[](0),
             new IPAUAssembler.AccessControlsConfig[](0),
             agentConfigs,
             _proxyConfig()
@@ -292,7 +290,7 @@ contract PAUAssembler_Integration_Tests is Test {
         vm.expectRevert(IPAUAssembler.NoAgentAdmins.selector);
         assembler.deploy(
             new IPAUAssembler.ControllerConfig[](0),
-            new IPAUAssembler.RateLimitConfig[](0),
+            new IPAUAssembler.RateLimitsConfig[](0),
             accessControlsConfigs,
             agentConfigs,
             _proxyConfig()
@@ -306,7 +304,7 @@ contract PAUAssembler_Integration_Tests is Test {
         vm.expectRevert(IPAUAssembler.NoDefaultAdmins.selector);
         assembler.deploy(
             new IPAUAssembler.ControllerConfig[](0),
-            new IPAUAssembler.RateLimitConfig[](0),
+            new IPAUAssembler.RateLimitsConfig[](0),
             accessControlsConfigs,
             new IPAUAssembler.AdministeredAgentConfig[](0),
             _proxyConfig()
@@ -324,20 +322,20 @@ contract PAUAssembler_Integration_Tests is Test {
         accessControlsConfigs[0] = _getOneAdminAccessControlsConfig(ACCESS_CONTROLS_ID_A, "acAdminA");
         accessControlsConfigs[1] = _getOneAdminAccessControlsConfig(ACCESS_CONTROLS_ID_B, "acAdminB");
 
-        IPAUAssembler.RateLimitConfig[] memory rateLimitConfigs = new IPAUAssembler.RateLimitConfig[](2);
-        rateLimitConfigs[0] = _getOneAdminRateLimitsConfig(RATE_LIMITS_ID_A, "rlAdminA");
-        rateLimitConfigs[1] = _getOneAdminRateLimitsConfig(RATE_LIMITS_ID_B, "rlAdminB");
+        IPAUAssembler.RateLimitsConfig[] memory rateLimitsConfigs = new IPAUAssembler.RateLimitsConfig[](2);
+        rateLimitsConfigs[0] = _getOneAdminRateLimitsConfig(RATE_LIMITS_ID_A, "rlAdminA");
+        rateLimitsConfigs[1] = _getOneAdminRateLimitsConfig(RATE_LIMITS_ID_B, "rlAdminB");
 
         IPAUAssembler.ControllerConfig[] memory controllerConfigs = new IPAUAssembler.ControllerConfig[](2);
 
         controllerConfigs[0].integrationIds    = new bytes32[](1);
         controllerConfigs[0].integrationIds[0] = AAVE_INTEGRATION_ID;
-        controllerConfigs[0].rateLimitId       = RATE_LIMITS_ID_A;
+        controllerConfigs[0].rateLimitsId      = RATE_LIMITS_ID_A;
         controllerConfigs[0].accessControlsId  = ACCESS_CONTROLS_ID_A;
 
         controllerConfigs[1].integrationIds    = new bytes32[](1);
         controllerConfigs[1].integrationIds[0] = TRANSFER_ASSET_INTEGRATION_ID;
-        controllerConfigs[1].rateLimitId       = RATE_LIMITS_ID_B;
+        controllerConfigs[1].rateLimitsId      = RATE_LIMITS_ID_B;
         controllerConfigs[1].accessControlsId  = ACCESS_CONTROLS_ID_B;
 
         IPAUAssembler.AdministeredAgentConfig[] memory agentConfigs = new IPAUAssembler.AdministeredAgentConfig[](1);
@@ -352,7 +350,7 @@ contract PAUAssembler_Integration_Tests is Test {
         agentConfigs[0].revokers[0]      = makeAddr("agentRevoker");
 
         // --- Capture factory nonces to predict deterministic addresses (one CREATE per call).
-        //     PAU_FACTORY order: proxy, ACCESS_CONTROLS_ID_A, ACCESS_CONTROLS_ID_B, RATE_LIMITS_ID_A, RATE_LIMITS_ID_B, ctrl0, ctrl1.
+        //     PAU_FACTORY order: proxy, AccessControls A/B, RateLimits A/B, controllers 0/1.
 
         uint256 fNonce = vm.getNonce(PAU_FACTORY);
         uint256 aNonce = vm.getNonce(ADMINISTERED_AGENT_FACTORY);
@@ -365,7 +363,7 @@ contract PAUAssembler_Integration_Tests is Test {
             address[] memory accessControls,
             address[] memory rateLimits,
             address[] memory allocatorAgents
-        ) = assembler.deploy(controllerConfigs, rateLimitConfigs, accessControlsConfigs, agentConfigs, _proxyConfig());
+        ) = assembler.deploy(controllerConfigs, rateLimitsConfigs, accessControlsConfigs, agentConfigs, _proxyConfig());
 
         // --- Addresses (inlined to keep stack shallow; this contract is built without via-IR).
 
@@ -395,8 +393,9 @@ contract PAUAssembler_Integration_Tests is Test {
 
         assertEq(IAccessControlLike(accessControls[0]).hasRole(DEFAULT_ADMIN_ROLE, makeAddr("acAdminA")), true);
         assertEq(IAccessControlLike(accessControls[0]).hasRole(DEFAULT_ADMIN_ROLE, address(assembler)),   false);
-        assertEq(IAccessControlLike(accessControls[0]).hasRole(ALLOCATOR_ROLE,     allocatorAgents[0]),    true);
+        assertEq(IAccessControlLike(accessControls[0]).hasRole(ALLOCATOR_ROLE,     allocatorAgents[0]),   true);
         assertEq(IAccessControlEnumerableLike(accessControls[0]).getRoleMemberCount(ALLOCATOR_ROLE),      1);
+        assertEq(IAccessControlEnumerableLike(accessControls[0]).getRoleMemberCount(DEFAULT_ADMIN_ROLE),  1);
 
         // AccessControls B has no allocator (agent referenced ACCESS_CONTROLS_ID_A only).
         assertEq(IAccessControlLike(accessControls[1]).hasRole(DEFAULT_ADMIN_ROLE, makeAddr("acAdminB")), true);
@@ -408,7 +407,6 @@ contract PAUAssembler_Integration_Tests is Test {
 
         assertEq(IAccessControlLike(rateLimits[0]).hasRole(DEFAULT_ADMIN_ROLE, makeAddr("rlAdminA")), true);
         assertEq(IAccessControlLike(rateLimits[0]).hasRole(DEFAULT_ADMIN_ROLE, address(assembler)),   false);
-        assertEq(IAccessControlEnumerableLike(accessControls[0]).getRoleMemberCount(DEFAULT_ADMIN_ROLE), 1);
         assertEq(IAccessControlLike(rateLimits[0]).hasRole(IRateLimitsLike(rateLimits[0]).CONTROLLER(), controllers[0]), true);
         assertEq(IAccessControlLike(rateLimits[1]).hasRole(IRateLimitsLike(rateLimits[1]).CONTROLLER(), controllers[1]), true);
         // RateLimits A is not wired to controller 1, and vice versa.
@@ -424,12 +422,12 @@ contract PAUAssembler_Integration_Tests is Test {
         assertEq(IControllerLike(controllers[1]).accessControls(), accessControls[1]);
         assertEq(IControllerLike(controllers[1]).rateLimits(),     rateLimits[1]);
 
-        assertEq(IControllerLike(controllers[0]).integrations().length,         1);
-        assertEq(IControllerLike(controllers[0]).integrations()[0].id,          AAVE_INTEGRATION_ID);
+        assertEq(IControllerLike(controllers[0]).integrations().length,          1);
+        assertEq(IControllerLike(controllers[0]).integrations()[0].id,           AAVE_INTEGRATION_ID);
         assertEq(IControllerLike(controllers[0]).integrations()[0].config.facet, AAVE_FACET);
 
-        assertEq(IControllerLike(controllers[1]).integrations().length,         1);
-        assertEq(IControllerLike(controllers[1]).integrations()[0].id,          TRANSFER_ASSET_INTEGRATION_ID);
+        assertEq(IControllerLike(controllers[1]).integrations().length,          1);
+        assertEq(IControllerLike(controllers[1]).integrations()[0].id,           TRANSFER_ASSET_INTEGRATION_ID);
         assertEq(IControllerLike(controllers[1]).integrations()[0].config.facet, TRANSFER_ASSET_FACET);
 
         // --- Agent configured and self-admin removed.
@@ -454,16 +452,16 @@ contract PAUAssembler_Integration_Tests is Test {
         IPAUAssembler.AccessControlsConfig[] memory accessControlsConfigs = new IPAUAssembler.AccessControlsConfig[](1);
         accessControlsConfigs[0] = _getOneAdminAccessControlsConfig(ACCESS_CONTROLS_ID_A, "acAdminA");
 
-        IPAUAssembler.RateLimitConfig[] memory rateLimitConfigs = new IPAUAssembler.RateLimitConfig[](1);
-        rateLimitConfigs[0] = _getOneAdminRateLimitsConfig(RATE_LIMITS_ID_A, "rlAdminA");
+        IPAUAssembler.RateLimitsConfig[] memory rateLimitsConfigs = new IPAUAssembler.RateLimitsConfig[](1);
+        rateLimitsConfigs[0] = _getOneAdminRateLimitsConfig(RATE_LIMITS_ID_A, "rlAdminA");
 
         IPAUAssembler.ControllerConfig[] memory controllerConfigs = new IPAUAssembler.ControllerConfig[](1);
-        controllerConfigs[0].rateLimitId      = RATE_LIMITS_ID_A;
+        controllerConfigs[0].rateLimitsId     = RATE_LIMITS_ID_A;
         controllerConfigs[0].accessControlsId = ACCESS_CONTROLS_ID_A;
         // integrationIds empty
 
         ( , address[] memory controllers, , , ) =
-            assembler.deploy(controllerConfigs, rateLimitConfigs, accessControlsConfigs, new IPAUAssembler.AdministeredAgentConfig[](0), _proxyConfig());
+            assembler.deploy(controllerConfigs, rateLimitsConfigs, accessControlsConfigs, new IPAUAssembler.AdministeredAgentConfig[](0), _proxyConfig());
 
         assertEq(IControllerLike(controllers[0]).integrations().length, 0);
     }
@@ -476,7 +474,7 @@ contract PAUAssembler_Integration_Tests is Test {
 
         assembler.deploy(
             new IPAUAssembler.ControllerConfig[](0),
-            new IPAUAssembler.RateLimitConfig[](0),
+            new IPAUAssembler.RateLimitsConfig[](0),
             accessControlsConfigs,
             new IPAUAssembler.AdministeredAgentConfig[](0),
             _proxyConfig()
@@ -487,7 +485,7 @@ contract PAUAssembler_Integration_Tests is Test {
 
         ( , , address[] memory accessControls, , ) = assembler.deploy(
             new IPAUAssembler.ControllerConfig[](0),
-            new IPAUAssembler.RateLimitConfig[](0),
+            new IPAUAssembler.RateLimitsConfig[](0),
             accessControlsConfigs,
             new IPAUAssembler.AdministeredAgentConfig[](0),
             _proxyConfig()

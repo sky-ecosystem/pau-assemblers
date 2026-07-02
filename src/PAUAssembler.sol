@@ -104,7 +104,7 @@ contract PAUAssembler is IPAUAssembler {
     /// @inheritdoc IPAUAssembler
     function deploy(
         ControllerConfig[]        memory controllerConfigs,
-        RateLimitConfig[]         memory rateLimitConfigs,
+        RateLimitsConfig[]        memory rateLimitsConfigs,
         AccessControlsConfig[]    memory accessControlsConfigs,
         AdministeredAgentConfig[] memory allocatorAgentConfigs,
         ALMProxyConfig            memory almProxyConfig
@@ -123,7 +123,7 @@ contract PAUAssembler is IPAUAssembler {
 
         controllers     = new address[](controllerConfigs.length);
         accessControls  = new address[](accessControlsConfigs.length);
-        rateLimits      = new address[](rateLimitConfigs.length);
+        rateLimits      = new address[](rateLimitsConfigs.length);
         allocatorAgents = new address[](allocatorAgentConfigs.length);
 
         // Step 2: Deploy the shared ALMProxy and grant its admins.
@@ -153,20 +153,20 @@ contract PAUAssembler is IPAUAssembler {
 
         // Step 4: Deploy and configure all RateLimits, indexing each by its id.
 
-        for (uint256 i = 0; i < rateLimitConfigs.length; i++) {
-            RateLimitConfig memory config = rateLimitConfigs[i];
+        for (uint256 i = 0; i < rateLimitsConfigs.length; i++) {
+            RateLimitsConfig memory config = rateLimitsConfigs[i];
 
-            address rateLimit = IPAUFactoryLike(pauFactory).deployRateLimits(address(this));
+            address rateLimits_ = IPAUFactoryLike(pauFactory).deployRateLimits(address(this));
 
-            rateLimits[i] = rateLimit;
+            rateLimits[i] = rateLimits_;
 
             bytes32 key = _getRateLimitId(config.id);
 
             require(_tloadAddress(key) == address(0), DuplicateRateLimitsId(config.id));
 
-            _tstoreAddress(key, rateLimit);
+            _tstoreAddress(key, rateLimits_);
 
-            _grantDefaultAdmins(rateLimit, config.admins);
+            _grantDefaultAdmins(rateLimits_, config.admins);
         }
 
         // Step 5: Deploy all Controllers, wiring each to its referenced AccessControls and
@@ -175,14 +175,14 @@ contract PAUAssembler is IPAUAssembler {
         for (uint256 i = 0; i < controllerConfigs.length; i++) {
             ControllerConfig memory config = controllerConfigs[i];
 
-            address rateLimit       = _tloadAddress(_getRateLimitId(config.rateLimitId));
+            address rateLimits_     = _tloadAddress(_getRateLimitId(config.rateLimitsId));
             address accessControls_ = _tloadAddress(_getAccessControlId(config.accessControlsId));
 
-            require(rateLimit       != address(0), InvalidRateLimitsId(config.rateLimitId));
+            require(rateLimits_     != address(0), InvalidRateLimitsId(config.rateLimitsId));
             require(accessControls_ != address(0), InvalidAccessControlsId(config.accessControlsId));
 
             address controller =
-                IPAUFactoryLike(pauFactory).deployController(accessControls_, proxy, rateLimit);
+                IPAUFactoryLike(pauFactory).deployController(accessControls_, proxy, rateLimits_);
 
             controllers[i] = controller;
 
@@ -190,8 +190,8 @@ contract PAUAssembler is IPAUAssembler {
                 IControllerLike(controller).updateIntegrations(config.integrationIds);
             }
 
-            IAccessControlLike(proxy).grantRole(IALMProxyLike(proxy).CONTROLLER(),           controller);
-            IAccessControlLike(rateLimit).grantRole(IRateLimitsLike(rateLimit).CONTROLLER(), controller);
+            IAccessControlLike(proxy).grantRole(IALMProxyLike(proxy).CONTROLLER(),               controller);
+            IAccessControlLike(rateLimits_).grantRole(IRateLimitsLike(rateLimits_).CONTROLLER(), controller);
         }
 
         // Step 6: Deploy and configure all allocator agents, granting each the allocator role on
@@ -232,8 +232,8 @@ contract PAUAssembler is IPAUAssembler {
             _tstoreAddress(_getAccessControlId(accessControlsConfigs[i].id), address(0));
         }
 
-        for (uint256 i = 0; i < rateLimitConfigs.length; i++) {
-            _tstoreAddress(_getRateLimitId(rateLimitConfigs[i].id), address(0));
+        for (uint256 i = 0; i < rateLimitsConfigs.length; i++) {
+            _tstoreAddress(_getRateLimitId(rateLimitsConfigs[i].id), address(0));
         }
 
         emit Deployment(
@@ -243,7 +243,7 @@ contract PAUAssembler is IPAUAssembler {
             rateLimits,
             allocatorAgents,
             controllerConfigs,
-            rateLimitConfigs,
+            rateLimitsConfigs,
             accessControlsConfigs,
             allocatorAgentConfigs,
             almProxyConfig

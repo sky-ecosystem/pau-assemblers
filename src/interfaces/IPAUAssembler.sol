@@ -37,7 +37,7 @@ interface IPAUAssembler {
     /// @notice Thrown when two AccessControlsConfigs share the same `id`.
     error DuplicateAccessControlsId(bytes32 id);
 
-    /// @notice Thrown when two RateLimitConfigs share the same `id`.
+    /// @notice Thrown when two RateLimitsConfigs share the same `id`.
     error DuplicateRateLimitsId(bytes32 id);
 
     /// @notice Thrown when a ControllerConfig or AdministeredAgentConfig references an unknown
@@ -53,13 +53,13 @@ interface IPAUAssembler {
 
     /**
      * @notice Configuration for a Controller deployed against the shared ALMProxy.
-     * @param  integrationIds  Integration IDs to sync on the Controller (may be empty).
-     * @param  rateLimitId     The `id` of the RateLimits this Controller is wired to.
+     * @param  integrationIds   Integration IDs to sync on the Controller (may be empty).
+     * @param  rateLimitsId     The `id` of the RateLimits this Controller is wired to.
      * @param  accessControlsId The `id` of the AccessControls this Controller is wired to.
      */
     struct ControllerConfig {
         bytes32[] integrationIds;
-        bytes32   rateLimitId;
+        bytes32   rateLimitsId;
         bytes32   accessControlsId;
     }
 
@@ -68,7 +68,7 @@ interface IPAUAssembler {
      * @param  id     Identifier used to reference this RateLimits from a ControllerConfig.
      * @param  admins Default admins for the RateLimits contract.
      */
-    struct RateLimitConfig {
+    struct RateLimitsConfig {
         bytes32   id;
         address[] admins;
     }
@@ -122,8 +122,8 @@ interface IPAUAssembler {
      * @param  rateLimits            The deployed RateLimits contracts.
      * @param  allocatorAgents       The deployed allocators as AdministeredAgent contracts.
      * @param  controllerConfigs     The configurations applied to each Controller.
-     * @param  rateLimitConfigs      The configurations applied to each RateLimits.
-     * @param  accessControlsConfigs  The configurations applied to each AccessControls.
+     * @param  rateLimitsConfigs     The configurations applied to each RateLimits.
+     * @param  accessControlsConfigs The configurations applied to each AccessControls.
      * @param  allocatorAgentConfigs The configurations applied to each allocator AdministeredAgent.
      * @param  almProxyConfig        The configuration applied to the shared ALMProxy.
      */
@@ -134,7 +134,7 @@ interface IPAUAssembler {
         address[]                         rateLimits,
         address[]                         allocatorAgents,
         ControllerConfig[]                controllerConfigs,
-        RateLimitConfig[]                 rateLimitConfigs,
+        RateLimitsConfig[]                rateLimitsConfigs,
         AccessControlsConfig[]            accessControlsConfigs,
         AdministeredAgentConfig[]         allocatorAgentConfigs,
         ALMProxyConfig                    almProxyConfig
@@ -181,8 +181,8 @@ interface IPAUAssembler {
      *         - When a ControllerConfig's `integrationIds` is empty, its `updateIntegrations` call
      *           is skipped (the Controller reverts on an empty array).
      * @param  controllerConfigs     Configuration for each Controller.
-     * @param  rateLimitConfigs      Configuration for each RateLimits.
-     * @param  accessControlsConfigs  Configuration for each AccessControls.
+     * @param  rateLimitsConfigs     Configuration for each RateLimits.
+     * @param  accessControlsConfigs Configuration for each AccessControls.
      * @param  allocatorAgentConfigs Configuration for each allocator AdministeredAgent.
      * @param  almProxyConfig        Configuration for the shared ALMProxy.
      * @return proxy                 The deployed shared ALMProxy contract.
@@ -193,7 +193,7 @@ interface IPAUAssembler {
      */
     function deploy(
         ControllerConfig[]        memory controllerConfigs,
-        RateLimitConfig[]         memory rateLimitConfigs,
+        RateLimitsConfig[]        memory rateLimitsConfigs,
         AccessControlsConfig[]    memory accessControlsConfigs,
         AdministeredAgentConfig[] memory allocatorAgentConfigs,
         ALMProxyConfig            memory almProxyConfig

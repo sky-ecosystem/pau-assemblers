@@ -31,14 +31,14 @@ interface IDefaultNFATPAUAssembler {
     /**
      * @notice The full set of {PAUAssembler} configuration arrays forwarded to its `deploy` call.
      * @param  controllerConfigs     Configuration for each Controller.
-     * @param  rateLimitConfigs      Configuration for each RateLimits.
-     * @param  accessControlsConfigs  Configuration for each AccessControls.
+     * @param  rateLimitsConfigs     Configuration for each RateLimits.
+     * @param  accessControlsConfigs Configuration for each AccessControls.
      * @param  allocatorAgentConfigs Configuration for each allocator AdministeredAgent.
      * @param  almProxyConfig        Configuration for the shared ALMProxy.
      */
     struct PAUAssemblerConfigs {
         IPAUAssembler.ControllerConfig[]        controllerConfigs;
-        IPAUAssembler.RateLimitConfig[]         rateLimitConfigs;
+        IPAUAssembler.RateLimitsConfig[]        rateLimitsConfigs;
         IPAUAssembler.AccessControlsConfig[]    accessControlsConfigs;
         IPAUAssembler.AdministeredAgentConfig[] allocatorAgentConfigs;
         IPAUAssembler.ALMProxyConfig            almProxyConfig;
@@ -52,8 +52,8 @@ interface IDefaultNFATPAUAssembler {
      * @param  baseURI         The NFAT base URI.
      * @param  gem             The gem token backing the facility.
      * @param  identityNetwork The identity network used by the facility.
-     * @param  cops            Cops for the facility.
      * @param  wards           Wards for the facility.
+     * @param  cops            Cops for the facility.
      */
     struct NFATFacilityFactoryConfig {
         string    name;
@@ -71,14 +71,14 @@ interface IDefaultNFATPAUAssembler {
 
     /**
      * @notice Emitted once the PAU stack and NFAT facility have been deployed and configured.
-     * @param  proxy             The deployed shared ALMProxy contract.
-     * @param  nfatFacility      The deployed NFAT facility contract.
-     * @param  controllers       The deployed Controller contracts.
-     * @param  accessControls    The deployed AccessControls contracts.
-     * @param  rateLimits        The deployed RateLimits contracts.
-     * @param  allocatorAgents   The deployed allocators as AdministeredAgent contracts.
-     * @param  pauAssemblerConfigs The configuration forwarded to the {PAUAssembler}.
-     * @param  nfatFacilityFactoryConfig  The configuration forwarded to the NFAT factory.
+     * @param  proxy                     The deployed shared ALMProxy contract.
+     * @param  nfatFacility              The deployed NFAT facility contract.
+     * @param  controllers               The deployed Controller contracts.
+     * @param  accessControls            The deployed AccessControls contracts.
+     * @param  rateLimits                The deployed RateLimits contracts.
+     * @param  allocatorAgents           The deployed allocators as AdministeredAgent contracts.
+     * @param  pauAssemblerConfigs       The configuration forwarded to the {PAUAssembler}.
+     * @param  nfatFacilityFactoryConfig The configuration forwarded to the NFAT factory.
      */
     event Deployment(
         address           indexed proxy,
@@ -122,14 +122,14 @@ interface IDefaultNFATPAUAssembler {
      *         resulting shared ALMProxy, in a single transaction.
      * @dev    Emits {Deployment} on completion. The NFAT facility's recipient and sole bud are both
      *         set to the deployed ALMProxy.
-     * @param  pauAssemblerConfigs The configuration forwarded to the {PAUAssembler}.
-     * @param  nfatFacilityFactoryConfig  The configuration forwarded to the NFAT factory.
-     * @return proxy             The deployed shared ALMProxy contract.
-     * @return nfatFacility      The deployed NFAT facility contract.
-     * @return controllers       The deployed Controller contracts.
-     * @return accessControls    The deployed AccessControls contracts.
-     * @return rateLimits        The deployed RateLimits contracts.
-     * @return allocatorAgents   The deployed allocator AdministeredAgent contracts.
+     * @param  pauAssemblerConfigs       The configuration forwarded to the {PAUAssembler}.
+     * @param  nfatFacilityFactoryConfig The configuration forwarded to the NFAT factory.
+     * @return proxy                     The deployed shared ALMProxy contract.
+     * @return nfatFacility              The deployed NFAT facility contract.
+     * @return controllers               The deployed Controller contracts.
+     * @return accessControls            The deployed AccessControls contracts.
+     * @return rateLimits                The deployed RateLimits contracts.
+     * @return allocatorAgents           The deployed allocator AdministeredAgent contracts.
      */
     function deploy(
         PAUAssemblerConfigs       memory pauAssemblerConfigs,
