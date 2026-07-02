@@ -352,7 +352,7 @@ contract PAUAssembler_Integration_Tests is Test {
         // --- Capture factory nonces to predict deterministic addresses (one CREATE per call).
         //     PAU_FACTORY order: proxy, AccessControls A/B, RateLimits A/B, controllers 0/1.
 
-        uint256 fNonce = vm.getNonce(PAU_FACTORY);
+        uint256 pauFactoryNonce = vm.getNonce(PAU_FACTORY);
         uint256 aNonce = vm.getNonce(ADMINISTERED_AGENT_FACTORY);
 
         // --- Deploy.
