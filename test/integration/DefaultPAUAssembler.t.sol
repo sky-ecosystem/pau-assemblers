@@ -31,9 +31,13 @@ interface IAccessControlLike {
 
     function getRoleAdmin(bytes32 role) external view returns (bytes32);
 
-    function getRoleMemberCount(bytes32 role) external view returns (uint256);
-
     function hasRole(bytes32 role, address account) external view returns (bool);
+
+}
+
+interface IAccessControlEnumerableLike {
+
+    function getRoleMemberCount(bytes32 role) external view returns (uint256);
 
 }
 
@@ -353,8 +357,8 @@ contract DefaultPAUAssembler_Integration_Tests is Test {
         // Assert AccessControls state.
         assertEq(accessControls, expectedAccessControls);
 
-        assertEq(IAccessControlLike(accessControls).getRoleMemberCount(DEFAULT_ADMIN_ROLE), 2);
-        assertEq(IAccessControlLike(accessControls).getRoleMemberCount(ALLOCATOR_ROLE),     2);
+        assertEq(IAccessControlEnumerableLike(accessControls).getRoleMemberCount(DEFAULT_ADMIN_ROLE), 2);
+        assertEq(IAccessControlEnumerableLike(accessControls).getRoleMemberCount(ALLOCATOR_ROLE),     2);
 
         assertEq(IAccessControlLike(accessControls).hasRole(DEFAULT_ADMIN_ROLE, makeAddr("accessControlAdmin1")), true);
         assertEq(IAccessControlLike(accessControls).hasRole(DEFAULT_ADMIN_ROLE, makeAddr("accessControlAdmin2")), true);

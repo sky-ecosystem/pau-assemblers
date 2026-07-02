@@ -1,6 +1,6 @@
 # PAU Assemblers
 
-![Foundry CI](https://github.com/soterlabs/pau-assemblers/actions/workflows/test.yml/badge.svg)
+![Foundry CI](https://github.com/sky-ecosystem/pau-assemblers/actions/workflows/test.yml/badge.svg)
 [![Foundry][foundry-badge]][foundry]
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](./LICENSE)
 
@@ -9,22 +9,29 @@
 
 ## Overview
 
-A collection of one-shot **assembler contracts for the Sky ecosystem**. Each assembler uses factories to deploy and fully wire a standardized on-chain systems in a single transaction, hands administrative rights to caller-supplied admins as defined by its configuration structs, and renounces every role it held during setup — so the assembler is trustless once the call returns.
+A collection of one-shot **assembler contracts for the Sky ecosystem**. Each assembler uses factories to deploy and fully wire standardized on-chain systems in a single transaction, hands administrative rights to caller-supplied admins as defined by its configuration structs, and renounces every role it held during setup — so the assembler is trustless once the call returns.
 
 The first assembler builds on the [PAU](https://github.com/sky-ecosystem/diamond-pau) stack, giving a reviewable, deterministic path to deploying Prime PAUs as more primes enter the ecosystem and replacing ad-hoc manual deployments.
 
 ### Factories
 
-| Contract              | Description                                                                                                       |
-| --------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `DefaultPAUAssembler` | Deploys a full PAU stack (AccessControls, ALMProxy, RateLimits, Controller) and one or more `AdministeredAgent`s. |
+| Contract               | Description                                                                                                       |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `DefaultPAUAssembler`  | Deploys a full PAU stack (AccessControls, ALMProxy, RateLimits, Controller) and one or more `AdministeredAgent`s. |
+| `PAUAssembler`         | Deploys one or more PAU stacks **sharing a single `ALMProxy`**, cross-referenced by caller-supplied ids, plus allocator `AdministeredAgent`s. |
+| `DefaultNFATPAUAssembler` | Deploys a PAU stack via `PAUAssembler` and an NFAT facility wired to the resulting shared `ALMProxy`.             |
 
 ## Documentation
 
-| Document                                                             | Description                                                             |
-| -------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| [Default PAU Assembler](./docs/DefaultPAUAssembler/README.md)        | Deploy flow, role/permission matrix, configuration, and security notes. |
-| [Sky Core Review Checklist](./docs/DefaultPAUAssembler/CHECKLIST.md) | Reviewer checklist for validating deploy arguments before sign-off.     |
+See the [`docs/` index](./docs/README.md) for the full map. Per assembler:
+
+| Assembler              | Documentation                                                  | Reviewer checklist                                                |
+| ---------------------- | -------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `DefaultPAUAssembler`  | [README](./docs/DefaultPAUAssembler/README.md)                 | [CHECKLIST](./docs/DefaultPAUAssembler/CHECKLIST.md)             |
+| `PAUAssembler`         | [README](./docs/PAUAssembler/README.md)                        | [CHECKLIST](./docs/PAUAssembler/CHECKLIST.md)                    |
+| `DefaultNFATPAUAssembler` | [README](./docs/DefaultNFATPAUAssembler/README.md)                | [CHECKLIST](./docs/DefaultNFATPAUAssembler/CHECKLIST.md) _(draft)_  |
+
+Each README covers the deploy flow, role/permission matrix, configuration, and security notes; each checklist validates deploy arguments before sign-off.
 
 ## Design
 
