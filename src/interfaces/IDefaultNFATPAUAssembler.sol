@@ -81,14 +81,14 @@ interface IDefaultNFATPAUAssembler {
      * @param  nfatFacilityFactoryConfig The configuration forwarded to the NFAT factory.
      */
     event Deployment(
-        address           indexed proxy,
-        address           indexed nfatFacility,
-        address[]                 controllers,
-        address[]                 accessControls,
-        address[]                 rateLimits,
-        address[]                 allocatorAgents,
-        PAUAssemblerConfigs       pauAssemblerConfigs,
-        NFATFacilityFactoryConfig nfatFacilityFactoryConfig
+        address                   indexed proxy,
+        address                   indexed nfatFacility,
+        address[]                         controllers,
+        address[]                         accessControls,
+        address[]                         rateLimits,
+        address[]                         allocatorAgents,
+        PAUAssemblerConfigs               pauAssemblerConfigs,
+        NFATFacilityFactoryConfig         nfatFacilityFactoryConfig
     );
 
     /**********************************************************************************************/
