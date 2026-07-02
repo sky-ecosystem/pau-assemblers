@@ -381,8 +381,8 @@ contract PAUAssembler_Integration_Tests is Test {
 
         bytes32 proxyControllerRole = IALMProxyLike(proxy).CONTROLLER();
 
-        assertEq(IAccessControlLike(proxy).hasRole(DEFAULT_ADMIN_ROLE, makeAddr("proxyAdmin")), true);
-        assertEq(IAccessControlLike(proxy).hasRole(DEFAULT_ADMIN_ROLE, address(assembler)),     false);
+        assertEq(IAccessControlLike(proxy).hasRole(DEFAULT_ADMIN_ROLE,     makeAddr("proxyAdmin")), true);
+        assertEq(IAccessControlLike(proxy).hasRole(DEFAULT_ADMIN_ROLE,     address(assembler)),     false);
         assertEq(IAccessControlLike(proxy).hasRole(proxyControllerRole,    controllers[0]),         true);
         assertEq(IAccessControlLike(proxy).hasRole(proxyControllerRole,    controllers[1]),         true);
 
