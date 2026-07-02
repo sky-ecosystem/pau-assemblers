@@ -100,13 +100,13 @@ Parameters forwarded to the NFAT factory. `recipient` and `buds` are **not** sup
 
 ```solidity
 event Deployment(
-    address           indexed proxy,
-    address           indexed nfatFacility,
-    address[]                 controllers,
-    address[]                 accessControls,
-    address[]                 rateLimits,
-    address[]                 allocatorAgents,
-    PAUAssemblerInput         pauAssemblerInput,
-    NFATFacilityFactoryInput  nfatFacilityFactoryInput
+    address                  indexed proxy,
+    address                  indexed nfatFacility,
+    address[]                        controllers,
+    address[]                        accessControls,
+    address[]                        rateLimits,
+    address[]                        allocatorAgents,
+    PAUAssemblerInput                pauAssemblerInput,
+    NFATFacilityFactoryInput         nfatFacilityFactoryInput
 );
 ```
