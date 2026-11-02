@@ -61,6 +61,17 @@ forge test
 - The external surface of each factory lives in `src/interfaces/I<Factory>.sol` (errors, structs, events, and address-returning functions). The `*Like` adapter interfaces for the underlying contracts are declared inline in the implementation file.
 - Licensed under AGPL-3.0-or-later.
 
+## Audits
+
+Audit reports are hosted on the auditors' public portfolio pages:
+
+| Auditor | Report | Version | Date |
+| --- | --- | --- | --- |
+| Cantina | [Sky: PAU Assemblers](https://cantina.xyz/portfolio/296d9469-c024-4143-bf48-8cd47fb99740) | v1.0.0 | 2026-06-12 |
+| ChainSecurity | [Sky PAU Assemblers](https://www.chainsecurity.com/security-audit/sky-factories-defaultpauassembler/) | v1.0.0 | 2026-06-09 |
+
+ChainSecurity reports are cumulative: each portfolio page hosts the latest version of the report, which covers all previously reviewed versions.
+
 ---
 
 <p align="center">
